@@ -2,7 +2,7 @@
     <div>
         <h1>Scanning</h1>
         <AddImg @scan="scanImg" @del="delScanImg" @reset="resetImg" @undo="undoChange" @redo="redoChange" />
-        <div id=" scanDiv">
+        <div id="scanDiv">
             <img id="scanImg" ref="scanImg" />
         </div>
         <EditImg @crop="cropImg" @rotateLeft="rotateImgLeft" @rotateRight="rotateImgRight" @replace="replaceImg"

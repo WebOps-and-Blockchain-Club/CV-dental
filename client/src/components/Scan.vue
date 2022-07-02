@@ -16,9 +16,9 @@
         <button v-on:click="redo" class="icnBtn" >
             <img src="../../public/redo.png" class="icn-img" />
         </button>
-
+        
         <div id="scanDiv">
-            <img id="scanImg" ref="scanImg" />
+            <img id="scanImg" ref="scanImg" v-bind:style="{filter:(contrastValue*100)}"/>
         </div>
 
         <button v-on:click="crop" class="icnBtn">
@@ -30,6 +30,18 @@
         <button v-on:click="rotateRight" class="icnBtn">
             <img src="../../public/rotating-arrow-symbol.png" class="icn-img">
         </button>
+        <div class="filterDiv">
+            <p>contrast</p>
+            <input
+            type="range"
+            id="contrastSlider"
+            min="-1"
+            v-model="contrastValue"
+            max="1"
+            step="0.01"
+            />
+        </div>
+        <span class="FilterValue">0</span>
         <button v-on:click="replace" class="icnBtn">
             <img src="../../public/true.png" class="icn-img">
         </button>
@@ -42,6 +54,9 @@
 
 <script>
 import Cropper from "cropperjs"
+import {PhotoEditor} from "photo-editor"
+import {Contrast} from "photo-editor/tools"
+
 export default {
     name: 'ScanComp',
     data() {
@@ -52,6 +67,8 @@ export default {
             cropper: {},
             imgElement:null,
             resetURL: [],
+            photoEditor: null,
+            contrastValue:0,
             i:-1
         }
     },
@@ -138,6 +155,23 @@ export default {
             console.log(e)
             console.log("successfully connected")
         }
+
+        this.photoEditor = new PhotoEditor(this.imgElement,{
+            tools:{
+                contrast : Contrast
+            },
+            sourceType: "img",
+            source: document.getElementById("source")
+        })
+        this.photoEditor.addListener("ready",()=>{
+            this.photoEditor.toggleTool("brightness");
+            document.getElementById("contrastValue").oninput = (e) => {
+                this.photoEditor.tools.contrast.setValue(Number(e.target.value));
+            };
+            this.photoEditor.addListener("enableTool",()=>{
+                document.getElementById("contrastValue").value = this.photoEditor.tools.contrast.value
+            })
+        })
     },
     
 }
@@ -152,12 +186,19 @@ export default {
         margin: 5px;
         border: 1px solid;
     }
+    #contrastSlider{
+        cursor: pointer;
+    }
     .icn-img {
         width: 22px;
     }
 
     .icnBtn {
         margin: 3px;
-        padding:8px
+        padding:8px;
+        cursor: pointer;
+    }
+    .filterDiv{
+        display: inline-block;
     }
 </style>

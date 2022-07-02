@@ -1,6 +1,6 @@
 <template>
     <div>
-        <button :v-for="buttonDetail in buttonDetails" @click="buttonDetail.method" class="icnBtn">
+        <button v-for="buttonDetail in buttonDetails" :key="buttonDetail.id" @click="buttonDetail.method" class="icnBtn">
             <img :src="buttonDetail.img" :alt="buttonDetail.alt" class="icn-img" />
         </button>
     </div>
@@ -18,11 +18,11 @@ export default {
     data() {
         return {
             buttonDetails: [
-                { img: crop, alt: "Crop Image", method: this.methods.clickCrop },
-                { img: rotateLeft, alt: "Rotate Left", method: this.methods.clickRotateLeft },
-                { img: rotateRight, alt: "Rotate Right", method: this.methods.clickRotateRight },
-                { img: replace, alt: "Replace Image", method: this.methods.clickReplace },
-                { img: cancel, alt: "Cancel Change", method: this.methods.clickCancel },
+                {id:0, img: crop, alt: "Crop Image", method: this.clickCrop },
+                {id:1, img: rotateLeft, alt: "Rotate Left", method: this.clickRotateLeft },
+                {id:2, img: rotateRight, alt: "Rotate Right", method: this.clickRotateRight },
+                {id:3, img: replace, alt: "Replace Image", method: this.clickReplace },
+                {id:4, img: cancel, alt: "Cancel Change", method: this.clickCancel },
             ],
         }
     },
