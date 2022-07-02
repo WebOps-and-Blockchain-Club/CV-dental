@@ -1,7 +1,8 @@
 <template>
     <div>
-        <button v-for="buttonDetail in buttonDetails" :key="buttonDetail.id" @click="buttonDetail.method" class="icnBtn">
-            <img :src="buttonDetail.img" :alt="buttonDetail.alt" class="icn-img" />
+        <button v-for="buttonDetail in buttonDetails" :key="buttonDetail.id" @click="buttonDetail.method"
+            class="icnBtn">
+            <img :src="buttonDetail.img" :title="buttonDetail.title" class="icn-img" />
         </button>
     </div>
 </template>
@@ -18,11 +19,11 @@ export default {
     data() {
         return {
             buttonDetails: [
-                {id:0 ,img: scanner, alt: "Scan your Image", method: this.clickScan },
-                {id:1, img: trash, alt: "Del your Image", method: this.clickDelScan },
-                {id:2, img: reset, alt: "Reset Image", method: this.clickReset },
-                {id:3, img: undo, alt: "Undo a Change", method: this.clickUndo },
-                {id:4, img: redo, alt: "Redo a Change", method: this.clickRedo },
+                { id: 0, img: scanner, title: "Scan your Image", method: this.clickScan },
+                { id: 1, img: trash, title: "Del your Image", method: this.clickDelScan },
+                { id: 2, img: reset, title: "Reset Image", method: this.clickReset },
+                { id: 3, img: undo, title: "Undo a Change", method: this.clickUndo },
+                { id: 4, img: redo, title: "Redo a Change", method: this.clickRedo },
             ],
         }
     },
