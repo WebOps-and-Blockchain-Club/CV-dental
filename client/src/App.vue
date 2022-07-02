@@ -1,16 +1,16 @@
 <template>
- <div>
-    <Scan/>
- </div>
+  <div>
+    <ScanComp />
+  </div>
 </template>
 
 <script>
-import Scan from './components/Scan.vue'
+import ScanComp from './components/scan/ScanComp.vue'
 
 export default {
   name: 'App',
   components: {
-    Scan,
+    ScanComp,
   }
 }
 </script>
