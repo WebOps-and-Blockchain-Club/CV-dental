@@ -1,12 +1,19 @@
 <template>
     <div>
         <h1>Scanning</h1>
+
         <AddImg @scan="scanImg" @del="delScanImg" @reset="resetImg" @undo="undoChange" @redo="redoChange" />
+
+        <button @click="toggleShowEditButtons" class="icnBtn" v-if="!showEditBtns">
+            <img :src="editBtnImg" title="Edit Image" class="icn-img">
+        </button>
+
         <div id="scanDiv">
             <img id="scanImg" ref="scanImg" />
         </div>
-        <EditImg @crop="cropImg" @rotateLeft="rotateImgLeft" @rotateRight="rotateImgRight" @replace="replaceImg"
-            @cancel="cancelCrop" />
+
+        <EditImg v-if="showEditBtns" @crop="cropImg" @rotateLeft="rotateImgLeft" @rotateRight="rotateImgRight"
+            @replace="replaceImg" @cancel="cancelCrop" />
     </div>
 </template>
 
@@ -14,6 +21,8 @@
 import AddImg from './AddImg.vue'
 import EditImg from './EditImg.vue'
 import Cropper from "cropperjs"
+
+import editBtnImg from "../../assets/edit-button-image-custom-icon.png"
 
 export default {
     components: {
@@ -28,7 +37,9 @@ export default {
             cropper: {},
             imgElement: null,
             resetURL: [],
-            i: -1
+            i: -1,
+            editBtnImg: editBtnImg,
+            showEditBtns: false,
         }
     },
     methods: {
@@ -50,17 +61,21 @@ export default {
         },
         undoChange() {
             if (this.i > 0) {
-                this.i--;
+                this.i--
                 this.imgElement.src = this.resetURL[this.i]
             }
         },
         redoChange() {
             if (this.i < this.resetURL.length - 1) {
-                this.i++;
+                this.i++
                 this.imgElement.src = this.resetURL[this.i]
             }
         },
-        // crop methods
+        // show/hide edit buttons
+        toggleShowEditButtons() {
+            this.showEditBtns = !this.showEditBtns
+        },
+        // edit methods
         cropImg() {
             this.cropper = new Cropper(this.imgElement, {
                 viewMode: 1,
@@ -77,8 +92,9 @@ export default {
             this.cropper.rotate(90)
         },
         replaceImg() {
+            this.showEditBtns = !this.showEditBtns
             if (this.i == -1) {
-                this.resetURL.push(this.imgElement.src);
+                this.resetURL.push(this.imgElement.src)
                 this.i++
             }
             this.imgElement.src = this.cropper.getCroppedCanvas({
@@ -101,7 +117,7 @@ export default {
         this.connection = new WebSocket("ws://localhost:8181/")
         this.connection.onmessage = (e) => {
             if (e.data instanceof Blob) {
-                this.file = e.data;
+                this.file = e.data
                 this.file.name = "File"
                 this.reader = new FileReader()
                 this.reader.readAsDataURL(this.file)
@@ -120,6 +136,15 @@ export default {
 </script>
 
 <style scoped>
+.icn-img {
+    width: 22px;
+}
+
+.icnBtn {
+    margin: 3px;
+    padding: 8px;
+}
+
 #scanImg {
     height: 100%;
 }
