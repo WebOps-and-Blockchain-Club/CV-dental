@@ -54,7 +54,7 @@ export default {
         clickSetFilters() {
             this.showFilters = !this.showFilters
             this.showButtons = !this.showButtons
-            this.$emit('setFilters')
+            this.$emit('setFilters', this.filters[0].filterValue, this.filters[1].filterValue)
         },
         clickRotateRight() {
             this.$emit('rotateRight')

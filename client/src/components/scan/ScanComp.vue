@@ -12,7 +12,7 @@
             <img :src="editBtnImg" title="Edit Image" class="icn-img">
         </button>
 
-        <EditImg v-if="showEditBtns" @crop="cropImg" @setFilters="adjustContrast" @rotateLeft="rotateImgLeft"
+        <EditImg v-if="showEditBtns" @crop="cropImg" @setFilters="adjustFilters" @rotateLeft="rotateImgLeft"
             @rotateRight="rotateImgRight" @replace="replaceImg" @cancel="cancelCrop" />
     </div>
 </template>
@@ -40,6 +40,8 @@ export default {
             i: -1,
             editBtnImg: editBtnImg,
             showEditBtns: false,
+            imgBrightness: 100,
+            imgContrast: 100,
         }
     },
     methods: {
@@ -81,16 +83,16 @@ export default {
                 viewMode: 1,
                 scaleable: false,
                 background: false,
-
             })
         },
-        adjustContrast() {
+        adjustFilters(brightness, contrast) {
+            this.imgBrightness = brightness
+            this.imgContrast = contrast
         },
         rotateImgLeft() {
             this.cropper.rotate(-90)
         },
         rotateImgRight() {
-
             this.cropper.rotate(90)
         },
         replaceImg() {
