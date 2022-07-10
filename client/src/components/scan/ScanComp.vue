@@ -1,19 +1,19 @@
 <template>
     <div>
-        <h1>Scanning</h1>
+        <h1>SCANNING</h1>
 
         <AddImg @scan="scanImg" @del="delScanImg" @reset="resetImg" @undo="undoChange" @redo="redoChange" />
-
-        <button @click="toggleShowEditButtons" class="icnBtn" v-if="!showEditBtns">
-            <img :src="editBtnImg" title="Edit Image" class="icn-img">
-        </button>
 
         <div id="scanDiv">
             <img id="scanImg" ref="scanImg" />
         </div>
 
-        <EditImg v-if="showEditBtns" @crop="cropImg" @rotateLeft="rotateImgLeft" @rotateRight="rotateImgRight"
-            @replace="replaceImg" @cancel="cancelCrop" />
+        <button @click="toggleShowEditButtons" class="icnBtn" v-if="!showEditBtns">
+            <img :src="editBtnImg" title="Edit Image" class="icn-img">
+        </button>
+
+        <EditImg v-if="showEditBtns" @crop="cropImg" @setFilters="adjustContrast" @rotateLeft="rotateImgLeft"
+            @rotateRight="rotateImgRight" @replace="replaceImg" @cancel="cancelCrop" />
     </div>
 </template>
 
@@ -83,6 +83,8 @@ export default {
                 background: false,
 
             })
+        },
+        adjustContrast() {
         },
         rotateImgLeft() {
             this.cropper.rotate(-90)

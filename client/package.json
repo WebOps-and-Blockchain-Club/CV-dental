@@ -11,6 +11,7 @@
     "core-js": "^3.8.3",
     "cropperjs": "^1.5.12",
     "image-filter-contrast": "^1.0.0",
+    "imagvue": "^0.0.5",
     "photo-editor": "^0.2.1",
     "socket.io-client": "^4.5.1",
     "vue": "^3.2.13",

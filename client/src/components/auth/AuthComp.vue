@@ -42,7 +42,7 @@ form {
 }
 
 label {
-    color: rgb(198, 198, 198);
+    color: rgb(199, 195, 195);
     display: inline-block;
     margin: 25px 0 15px;
     font-size: 0.6em;
