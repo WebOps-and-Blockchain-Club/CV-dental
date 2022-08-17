@@ -47,7 +47,8 @@ export default {
     methods: {
         // add methods
         scanImg() {
-            this.connection.send("1100")
+            // this.connection.send("1100")
+            this.$emit('scaned');
         },
         delScanImg() {
             this.imgElement.src = ""
@@ -154,8 +155,9 @@ export default {
 }
 
 #scanDiv {
-    height: 68vh;
-    margin: 5px;
+    height: 60vh;
+    margin-right: 10%;
+    margin-left: 10%;
     border: 1px solid;
 }
 </style>

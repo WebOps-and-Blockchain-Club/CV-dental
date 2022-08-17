@@ -1,30 +1,40 @@
 <template>
   <div>
-    <AuthComp v-if="!gotoScan" @submited="setScanner" />
-    <ScanComp v-if="gotoScan" />
+    <AuthComp v-if="!auth" @submited="setMount" />
+    <MountComp v-if="gotoMount" @scan="setScanner" />
+    <ScanComp v-if="gotoScan" @scaned="setMount" />
   </div>
 </template >
     
-    <script>
+<script>
 import AuthComp from './components/auth/AuthComp.vue'
 import ScanComp from './components/scan/ScanComp.vue'
+import MountComp from './components/mount/MountComp.vue'
 
 export default {
   name: 'App',
   data() {
     return {
-      gotoScan: false
+      gotoScan: false,
+      auth: false,
+      gotoMount: false,
     }
   },
   methods: {
     setScanner() {
       this.gotoScan = true;
-      console.log(this.gotoScan);
+      this.gotoMount = false;
+    },
+    setMount() {
+      this.gotoMount = true
+      this.gotoScan = false;
+      this.auth = true;
     }
   },
   components: {
     ScanComp,
     AuthComp,
+    MountComp
   },
 }
 </script>
@@ -37,7 +47,7 @@ export default {
       text-align: center;
       letter-spacing: 1px;
       font-weight: bold;
-      color: #acaeaf;
+      color: #13232b;
       margin-top: 60px;
     }
     </style>
