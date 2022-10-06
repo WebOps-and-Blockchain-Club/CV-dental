@@ -47,8 +47,8 @@ export default {
     methods: {
         // add methods
         scanImg() {
-            // this.connection.send("1100")
-            this.$emit('scaned');
+            this.connection.send("1100")
+            // this.$emit('scaned');
         },
         delScanImg() {
             this.imgElement.src = ""

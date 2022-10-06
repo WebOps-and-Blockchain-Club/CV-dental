@@ -29,7 +29,6 @@ export default {
     },
     methods: {
         clickScan() {
-            console.log("hi")
             this.$emit('scan')
         },
         clickDelScan() {
