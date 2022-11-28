@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div class="buttons" v-if="showButtons">
+        <!-- <div class="buttons" v-if="showButtons">
             <button v-for="buttonDetail in buttonDetails" :key="buttonDetail.id" @click="buttonDetail.method"
                 class="icnBtn">
                 <img :src="buttonDetail.img" :title="buttonDetail.title" class="icn-img" />
@@ -15,11 +15,23 @@
             <button class="icnBtn" @click="clickSetFilters">
                 <img class="icn-img" :src="buttonDetails[4].img" title="Done">
             </button>
+        </div> -->
+        <div class="buttons">
+            <button @click="toggleShowEditButtons" class="icnBtn" v-if="showEditBtns">
+                <img :src="editBtnImg" title="Edit Image" class="icn-img">
+            </button>
+            <div v-if = "!showEditBtns">
+                <button v-for="buttonDetail in editBtn" :key="buttonDetail.id" @click="buttonDetail.method"
+                    class="icnBtn">
+                    <img :src="buttonDetail.img" :title="buttonDetail.title" class="icn-img" />
+                </button>    
+            </div> 
         </div>
     </div>
 </template>
 <script>
-import crop from "../../assets/crop.png"
+import editBtnImg from "../../assets/edit-button-image-custom-icon.png"
+// import crop from "../../assets/crop.png"
 import filter from "../../assets/contrast-icon-brightness.png"
 import rotateLeft from "../../assets/circular-counterclockwise-arrow-rotation.png"
 import rotateRight from "../../assets/rotating-arrow-symbol.png"
@@ -31,14 +43,14 @@ export default {
     name: 'EditImg',
     data() {
         return {
-            showButtons: true,
-            buttonDetails: [
-                { id: 0, img: crop, title: "Crop Image", method: this.clickCrop },
-                { id: 1, img: filter, title: "Set Filters", method: this.clickSetFilters },
-                { id: 2, img: rotateLeft, title: "Rotate Left", method: this.clickRotateLeft },
-                { id: 3, img: rotateRight, title: "Rotate Right", method: this.clickRotateRight },
-                { id: 4, img: replace, title: "Replace Image", method: this.clickReplace },
-                { id: 5, img: cancel, title: "Cancel Change", method: this.clickCancel },
+            showEditBtns: true,
+            editBtnImg: editBtnImg,
+            editBtn: [
+                { id: 0, img: filter, title: "Set Filters", method: this.clickSetFilters },
+                { id: 1, img: rotateLeft, title: "Rotate Left", method: this.clickRotateLeft },
+                { id: 2 , img: rotateRight, title: "Rotate Right", method: this.clickRotateRight },
+                { id: 3, img: replace, title: "Replace Image", method: this.clickReplace },
+                { id: 4, img: cancel, title: "Cancel Change", method: this.clickCancel}
             ],
             showFilters: false,
             filterDetails: [
@@ -48,7 +60,8 @@ export default {
         }
     },
     methods: {
-        clickCrop() {
+        toggleShowEditButtons(){
+            this.showEditBtns = false;
             this.$emit('crop')
         },
         clickSetFilters() {
@@ -63,9 +76,11 @@ export default {
             this.$emit('rotateLeft')
         },
         clickReplace() {
+            this.showEditBtns = true;
             this.$emit('replace')
         },
         clickCancel() {
+            this.showEditBtns = true;
             this.$emit('cancel')
         }
     }
