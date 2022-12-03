@@ -9,6 +9,5 @@ app.use(express.json());
 app.use(router);
 
 router.use("/xray", require("./xray"));
-router.use("/auth", require("./auth"));
 
 module.exports = app;
