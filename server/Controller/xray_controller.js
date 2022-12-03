@@ -32,7 +32,8 @@ module.exports.addXray = async function (req, res) {
 
             newXray = new Xray({
                 title: req.body.title,
-                xray_url: "./Xray-images/" + fileName
+                xray_url: "./Xray-images/" + fileName,
+                patient_id: req.body.patient_id
             });
             newXray.save();
             return res.status(200).json({
