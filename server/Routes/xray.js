@@ -1,12 +1,10 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
 
-const xrayController = require('../Controller/xray_controller');
+const xrayController = require("../Controller/xray_controller");
 
-router.post('/addxray',xrayController.addXray);
-router.delete('/deletexray', xrayController.deleteXray);
-router.put('/editxray', xrayController.editXray);
-router.get('/getallxray', xrayController.getAllXray);
-router.get('/getxray', xrayController.getXrayByID);
+router.post("/addxray", xrayController.addXray);
+router.get("/getallxray", xrayController.getAllXrayofPatient);
+router.get("/getxray", xrayController.downloadXray);
 
 module.exports = router;

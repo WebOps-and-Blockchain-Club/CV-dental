@@ -1,153 +1,79 @@
 const Xray = require("../Model/xray");
-const multer = require('multer');
-const path = require('path');
-const fs = require("fs");
-
-
-const storage = multer.diskStorage({
-    destination: path.join(__dirname, '../../Client/public/Xray-images'),
-    filename: function (req, file, cb) {
-        cb(null, Date.now() + '-' + file.originalname)
-    }
-})
-
-const upload = multer({ storage: storage }).single("xray-img");
+const processFile = require("../utils/upload");
+const { format } = require("util");
+const { Storage } = require("@google-cloud/storage");
+const storage = new Storage({ keyFilename: "google-cloud-key.json" });
+const bucket = storage.bucket("cv-dental-xraystore");
 
 module.exports.addXray = async function (req, res) {
-    try {
-        var newXray;
-        upload(req, res, (err) => {
-            if (!req.file) {
-                return res.status(404).json({
-                    message: "File not found",
-                });
-            }
-            else if (err instanceof multer.MulterError) {
-                return res.send(err);
-            }
-            else if (err) {
-                return res.send(err);
-            }
-            let fileName = req.file.filename;
+  try {
+    await processFile(req, res);
 
-            newXray = new Xray({
-                title: req.body.title,
-                xray_url: "./Xray-images/" + fileName,
-                patient_id: req.body.patient_id
-            });
-            newXray.save();
-            return res.status(200).json({
-                success: true,
-                data: newXray,
-                message: "Xray-img added!",
-            });
-        })
+    if (!req.file) {
+      return res.status(400).send({ message: "Please upload a file!" });
     }
-    catch (err) {
-        console.log("Error in adding XrayImg: " + err)
-    }
-};
 
-module.exports.editXray = async function (req, res) {
-    const xray = await Xray.findById(req.query.xray_id);
-    try {
-        upload(req, res, (err) => {
-            if (!req.file) {
-                xray.title = req.body.title;
-                xray.save();
-                return res.status(200).json({
-                    success: true,
-                    message: "Xray-img edited!",
-                });
-            }
-            else if (err instanceof multer.MulterError) {
-                return res.send(err);
-            }
-            else if (err) {
-                return res.send(err);
-            }
-            console.log("kru");
-            let fileName = req.file.filename;
-            if (xray.xray_url != "") {
-                try {
-                    fs.unlinkSync(path.join(__dirname, "../../Client/public/", xray.xray_url.slice(1)));
-                    console.log("Xray-img removed");
-                } catch (err) {
-                    console.error(err);
-                }
-            }
-            xray.title = req.body.title;
-            xray.xray_url = "./Xray-images/" + fileName;
-            xray.save();
-            return res.status(200).json({
-                success: true,
-                message: "Xray-img edited!",
-            });
-        })
-    }
-    catch (err) {
-        console.log("Error in editing Xray-img: " + err)
-    }
-};
+    const blob = bucket.file(req.file.originalname);
+    const blobStream = blob.createWriteStream({
+      resumable: false,
+    });
 
-module.exports.deleteXray = async function (req, res) {
-    try {
-        const xray_id = req.query.xray_id;
-        const xray = await Xray.findById(xray_id);
-        if (xray) {
-            try {
-                fs.unlinkSync(path.join(__dirname, "../../Client/public/", xray.xray_url.slice(1)));
-            } catch (err) {
-                console.error(err);
-            }
-        }
-        else{
-            return res.status(404).json({
-                message: "Xray-img not found"
-            })
-        } 
-        await xray.delete();
+    blobStream.on("error", (err) => {
+      res.status(500).send({ message: err.message });
+    });
 
-        return res.status(200).json({
-            success: true,
-            message: "Xray deleted!",
+    blobStream.on("finish", async (data) => {
+      const publicUrl = format(
+        `https://storage.googleapis.com/${bucket.name}/${blob.name}`
+      );
+
+      try {
+        await bucket.file(req.file.originalname).makePublic();
+      } catch {
+        return res.status(500).send({
+          message: `Uploaded the file successfully: ${req.file.originalname}, but public access is denied!`,
+          url: publicUrl,
         });
-    }
-    catch (err) {
-        console.log("Error in deleting Xray: " + err)
-    }
+      }
+
+      newXray = new Xray({
+        title: req.body.title,
+        xray_url: publicUrl,
+        patient_id: req.body.patient_id,
+      });
+      newXray.save();
+      return res.status(200).json({
+        success: true,
+        data: newXray,
+        message: "File uploaded Succesfully and Xray-img added!",
+      });
+    });
+
+    blobStream.end(req.file.buffer);
+  } catch (err) {
+    res.status(500).send({
+      message: `Could not upload the file: ${req.file.originalname}. ${err}`,
+    });
+  }
 };
 
+module.exports.getAllXrayofPatient = async function (req, res) {
+  try {
+    let xray = await Xray.find({ patient_id: req.patient_id });
+    return res.status(200).json({
+      success: true,
+      data: xray,
+    });
+  } catch (err) {
+    console.log("Error in getting all xray: " + err);
+  }
+};
 
-module.exports.getAllXray = async function (req, res) {
-    try {
-        let xray = await Xray.find({});
-        return res.status(200).json({
-            "success": true,
-            "data": xray
-        })
-    }
-    catch (err) {
-        console.log("Error in getting all xray: " + err)
-    }
-}
-
-module.exports.getXrayByID = async function (req, res) {
-    try {
-        const xray_id = req.query.xray_id;
-        const xray = await Xray.findById(xray_id);
-        if(xray){
-            return res.status(200).json({
-                "success": true,
-                "data": xray
-            })
-        }
-        else{
-            return res.status(404).json({
-                message: "Xray-img not found"
-            })
-        }
-    } catch (err) {
-        console.log("Error in getting xray: " + err)
-    }
-}
+module.exports.downloadXray = async function (req, res) {
+  try {
+    const [metaData] = await bucket.file(req.params.name).getMetadata();
+    res.redirect(metaData.mediaLink);
+  } catch (err) {
+    console.log("Error in downloading xray: " + err);
+  }
+};
