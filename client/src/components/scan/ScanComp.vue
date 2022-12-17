@@ -1,41 +1,43 @@
 <template>
-    <div>
-        <h1>SCANNING</h1>
-
+    <div class="d-flex flex-column justify-content-center align-items-center">
+        <h1 >SCANNING</h1>
         <AddImg @scan="scanImg" 
-            @del="delScanImg" 
-            @reset="resetImg" 
-            @undo="undoChange" 
-            @redo="redoChange" />
+                @del="delScanImg" 
+                @reset="resetImg" 
+                @undo="undoChange" 
+                @redo="redoChange" />
         
         
-        <div id="scanDiv" class="d-flex justify-content-center align-items-center">
-            <img id="scanImg" ref="scanImg" />
-            <canvas class="hidden" id="drawingCanvas"></canvas>
+        <div id="fabric-canvas-wrapper">
+            <canvas ref="canvas" id="drawingCanvas" class="can"></canvas>
         </div>
 
         <EditImg @crop="cropImg"
-            @reset_filter = "resetFilter" 
-            @rotateLeft="rotateImgLeft"
-            @rotateRight="rotateImgRight" 
-            @draw = "draw"
-            @apply_change_crop="apply_change_crop"
-            @apply_change_transform = "apply_change_transform" 
-            @apply_change_filter = "apply_change_filter"
-            @apply_change_draw = "apply_change_draw"
-            @cancelCrop="cancelCrop" 
-            @cancelTransform = "cancelTransform"
-            @cancelDraw = "cancelDraw" />
-    
+                @reset_filter = "resetFilter" 
+                @rotateLeft="rotateImgLeft"
+                @rotateRight="rotateImgRight" 
+                @draw = "draw"
+                @apply_change_crop="apply_change_crop"
+                @apply_change_transform = "apply_change_transform"
+                @pushFilter = "pushFilter"
+                @adjustBrightness = "adjustBrightness"
+                @adjustContrast = "adjustContrast" 
+                @apply_change_filter = "apply_change_filter"
+                @apply_change_draw = "apply_change_draw"
+                @cancelCrop="cancelCrop" 
+                @cancelTransform = "cancelTransform"
+                @cancelDraw = "cancelDraw"
+                @zoom = "zoom" />
     </div>
 </template>
 
 <script>
 import AddImg from './AddImg.vue'
 import EditImg from './EditImg.vue'
-import Cropper from "cropperjs"
 import replace from "../../assets/true.png"
 import cancel from "../../assets/forbidden.png"
+
+import fabric from 'fabric';
 
 
 export default {
@@ -45,19 +47,24 @@ export default {
     },
     data() {
         return {
+            canvas:null,
+            currentImage:null,
+            img:null, 
             replaceBtnIcn : replace,
             cancelBtnIcn : cancel,
             connection: null,
-            cropper: {},
-            edit_data: [],
+            selectionRect:null,
             temp_rotation: 0,
             rotation: 0,
-            crop:{},
-            imgBrightness: 100,
-            imgContrast: 100,
-            imgElement: null, // image element
-            img:null, 
-            idx: -1,
+            imgBrightness: 0,
+            tempBrightness:0,
+            imgContrast: 0,
+            tempContrast:0,
+            currentBrushColor:"black",
+            brushSize: 1,
+            tempCanvasJSON:null,
+            actionStack: [],
+            currentActionIndex: -1,
             file: null,    // connection
             reader: null,  // connection
         }
@@ -67,285 +74,260 @@ export default {
             this.connection.send("1100")
         },
         delScanImg() {
-            this.imgElement.src = ""
-            this.crop = {}
-            this.rotation = 0
-            this.temp_rotation = 0
-            this.edit_data = []
-            this.imgBrightness = 100
-            this.imgContrast = 100
-            this.idx = -1
-            this.imgElement.style.transform = `rotate(0deg)`
-            
+            this.canvas.dispose();
+            this.initializeFabricCanvas();
         },
         resetImg() {
-            this.imgElement.src = this.img.src
-            this.crop = {}
-            this.rotation = 0
-            this.temp_rotation = 0
-            this.edit_data = []
-            this.imgBrightness = 100
-            this.imgContrast = 100
-            this.idx = -1
-            this.imgElement.style.transform = `rotate(0deg)`      
+            this.currentActionIndex = 0;
+            this.actionStack.splice(this.currentActionIndex + 1);
+            this.canvas.loadFromJSON(this.actionStack[0],()=>{
+                this.canvas.getObjects().forEach((obj)=>{
+                    if(obj.type==='image'){
+                        this.currentImage = obj;
+                    }
+                });
+            });
         },
         undoChange() {
-            this.idx--;
-            if(this.idx<-1){
-                this.idx = -1
-            }
-            else if(this.idx==-1){
-                this.imgElement.src = this.img.src;
-                this.rotation = 0;
-                this.imgElement.style.transform = `rotate(${this.rotation}deg)`
-                this.crop = {}
-                this.resetFilter();
-            }
-            else{
-                console.log(this.edit_data[this.idx]["crop_data"])
-                if(!(this.edit_data[this.idx]["crop_data"] && Object.keys(this.edit_data[this.idx]["crop_data"]).length === 0 && Object.getPrototypeOf(this.edit_data[this.idx]["crop_data"]) === Object.prototype )){
-                    const canvas = document.createElement("canvas")
-                    const ctx = canvas.getContext("2d")
-                    this.crop = this.edit_data[this.idx]["crop_data"]
-                    canvas.width = this.crop["width"]
-                    canvas.height = this.crop["height"]
-                    ctx.translate(canvas.width / 2, canvas.height / 2);
-                    ctx.drawImage(this.img,this.crop["x"], this.crop["y"],canvas.width,canvas.height,-canvas.width/2,-canvas.height/2,canvas.width,canvas.height);
-                    this.imgElement.src = canvas.toDataURL();      
-                }
-                
-                this.rotation = this.edit_data[this.idx]["rotation_data"];
-                this.temp_rotation = this.rotation
-                this.imgElement.style.transform = `rotate(${this.rotation}deg)` 
-
-                
-                this.imgBrightness = this.edit_data[this.idx]["filter_data"][0]
-                this.imgContrast = this.edit_data[this.idx]["filter_data"][1]
-                
-                this.updateFilters()
+            if (this.currentActionIndex > 0) {
+                this.currentActionIndex--;
+                this.canvas.loadFromJSON(this.actionStack[this.currentActionIndex],()=>{
+                    this.canvas.getObjects().forEach((obj)=>{
+                        if(obj.type==='image'){
+                            this.currentImage = obj;
+                        }
+                    });
+                });
             }
         },
         redoChange() {
-            this.idx++;
-            if(this.idx>this.edit_data.length-1){
-                this.idx = this.edit_data.length-1
-            }
-            else{
-                if(!(this.edit_data[this.idx]["crop_data"] && Object.keys(this.edit_data[this.idx]["crop_data"]).length === 0 && Object.getPrototypeOf(this.edit_data[this.idx]["crop_data"]) === Object.prototype )){
-                    const canvas = document.createElement("canvas")
-                    const ctx = canvas.getContext("2d")
-                    this.crop = this.edit_data[this.idx]["crop_data"]
-                    canvas.width = this.crop["width"]
-                    canvas.height = this.crop["height"]
-                    ctx.translate(canvas.width / 2, canvas.height / 2);
-                    ctx.drawImage(this.img,this.crop["x"], this.crop["y"],canvas.width,canvas.height,-canvas.width/2,-canvas.height/2,canvas.width,canvas.height);
-                    this.imgElement.src = canvas.toDataURL();      
-                } 
-            
-                this.rotation = this.edit_data[this.idx]["rotation_data"];
-                this.temp_rotation = this.rotation
-                this.imgElement.style.transform = `rotate(${this.rotation}deg)` 
-                
-                 
-                this.imgBrightness = this.edit_data[this.idx]["filter_data"][0]
-                this.imgContrast = this.edit_data[this.idx]["filter_data"][1]
-
-                this.updateFilters()
+            if (this.currentActionIndex < this.actionStack.length - 1) {
+                this.currentActionIndex++;
+                this.canvas.loadFromJSON(this.actionStack[this.currentActionIndex],()=>{
+                    this.canvas.getObjects().forEach((obj)=>{
+                        if(obj.type==='image'){
+                            this.currentImage = obj;
+                        }
+                    });
+                });
             }
         },
         // -------------------------------------------------------------------------------------------------
         
-        cropImg() {         
-            this.cropper = new Cropper(this.imgElement, {
-                viewMode: 1,
-                scaleable: true,
-                background: false,
-                autoCropArea: 1, 
-            })
-            setTimeout(()=>{  // find better way when cropper intitializes then it should run
-                this.cropper.rotate(this.rotation)
-            },500)
+        cropImg() {   
+            this.tempCanvasJSON = this.canvas.toJSON();
+            this.canvas.setViewportTransform([1,0,0,1,0,0]);
+            this.canvas.setZoom(1);
+            this.canvas.getObjects().forEach((obj) => {
+                obj.selectable = false;
+            });
+            this.addSelectionRect();
+            this.canvas.setActiveObject(this.selectionRect);
+            this.canvas.renderAll();   
+        },
+        addSelectionRect() {
+            this.selectionRect = new fabric.fabric.Rect({
+                fill: "rgba(0,0,0,0.3)",
+                originX: "left",
+                originY: "top",
+                stroke: "black",
+                opacity: 1,
+                width: this.canvas.width,
+                height: this.canvas.height,
+                transparentCorners: false,
+                cornerColor: "white",
+                cornerStrokeColor: "black",
+                borderColor: "black",
+                cornerSize: 12,
+                padding: 0,
+                cornerStyle: "circle",
+                borderDashArray: [5, 5],
+                borderScaleFactor: 1.3,
+            });
+            this.selectionRect.setControlVisible('mtr', false);
+            this.selectionRect.scaleToWidth(300);
+            this.canvas.centerObject(this.selectionRect);
+            this.selectionRect.visible = true;
+            this.canvas.add(this.selectionRect);
         },  
         apply_change_crop() {
-            var temp = this.cropper.getData();
-            if(this.rotation==90){
-                let p = temp["x"]
-                temp["x"] = temp["y"];
-                temp["y"] = this.imgElement.naturalHeight - p- temp["width"];
-                p = temp["width"]
-                temp["width"] = temp["height"]
-                temp["height"] = p
-            }
-            else if(this.rotation==-90){
-                let p = temp["y"]
-                temp["y"] = temp["x"]
-                temp["x"] = this.imgElement.naturalWidth - p- temp["height"]
-                p = temp["width"]
-                temp["width"] = temp["height"]
-                temp["height"] = p
-            }
-            else if(this.rotation==180){
-                temp["x"] = this.imgElement.naturalWidth - temp["x"] - temp["width"];
-                temp["y"] = this.imgElement.naturalHeight - temp["y"] - temp["height"];
-            }
+            let rect = new fabric.fabric.Rect({
+                left: this.selectionRect.left,
+                top: this.selectionRect.top,
+                width: this.selectionRect.getScaledWidth(),
+                height: this.selectionRect.getScaledHeight(),
+                absolutePositioned: true
+            });
+            this.currentImage.clipPath = rect;
+            this.canvas.remove(this.selectionRect);
 
-            if(this.idx!=-1){ 
-                temp["x"] += this.crop["x"];
-                temp["y"] += this.crop["y"];
+            var cropped = new Image();
+            cropped.src = this.canvas.toDataURL({
+                multiplier:5,   // for maintaing Quality
+                left: rect.left,
+                top: rect.top,
+                width: rect.width,
+                height: rect.height,
+            });
+            this.canvas.clear();
+
+            cropped.onload = () => {
+                let image = new fabric.fabric.Image(cropped);
+                image.left = rect.left;
+                image.top = rect.top;
+                image.scaleToWidth(image.width/5); // for viewing scale down again
+                image.scaleToHeight(image.height/5);
+                image.setCoords();
+                image.setControlsVisibility({ mtr: false })
+                this.currentImage = image;
+                this.pushFilter();
+                this.canvas.add(image);
+                let objects = this.canvas.getObjects();
+                var selection = new fabric.fabric.ActiveSelection(objects, {
+                    canvas: this.canvas,
+                });
+                this.canvas.setActiveObject(selection);   //selecting all objects...
+                this.canvas.discardActiveObject();        //...and deselecting them
+                this.canvas.requestRenderAll();
+                this.canvas.backgroundColor = "#E1E3E9";
+                this.canvas.renderAll();
+                this.take_data();
             }
-
-            this.crop = temp;
-
-            this.take_data();
-            
-            this.imgElement.cropper.destroy() 
-            const canvas = document.createElement("canvas")
-            const ctx = canvas.getContext("2d")
-            canvas.width = temp["width"]
-            canvas.height = temp["height"]
-            ctx.translate(canvas.width / 2, canvas.height / 2);
-            ctx.drawImage(this.img,temp["x"], temp["y"],canvas.width,canvas.height,-canvas.width/2,-canvas.height/2,canvas.width,canvas.height);
-            this.imgElement.src = canvas.toDataURL();            
         },
         cancelCrop() {
-            if(this.cropper){
-                this.imgElement.cropper.destroy()
-            }
+            this.canvas.loadFromJSON(this.tempCanvasJSON);
         },
 
         // ----------------------------------------------------------------------------
 
         rotateImgLeft() {
-            this.temp_rotation -= 90
-            this.imgElement.style.transform = `rotate(${this.temp_rotation}deg)`
+            this.temp_rotation-=90    
+            this.rotateCanvas(-90)
         },
         rotateImgRight() {
-            this.temp_rotation += 90
-            this.imgElement.style.transform = `rotate(${this.temp_rotation}deg)`
+            this.temp_rotation+=90
+            this.rotateCanvas(90)
+        },
+        rotateCanvas(degree){
+            let canvasCenter = new fabric.fabric.Point(this.canvas.getWidth() / 2, this.canvas.getHeight() / 2) // center of canvas
+            let radians = fabric.fabric.util.degreesToRadians(degree)
+            this.canvas.getObjects().forEach((obj) => {
+                let objectOrigin = new fabric.fabric.Point(obj.left, obj.top)
+                let new_loc = fabric.fabric.util.rotatePoint(objectOrigin, canvasCenter, radians)
+                obj.top = new_loc.y
+                obj.left = new_loc.x
+                obj.angle += degree
+                obj.setCoords()
+            });
+            this.canvas.renderAll()
         },
         apply_change_transform(){
             this.rotation = this.temp_rotation;
-            this.rotation = Math.floor(this.rotation%360);
-            this.take_data()
+            this.take_data();
         },
         cancelTransform(){
-            this.imgElement.style.transform = `rotate(${this.rotation}deg)`
-            this.temp_rotation = this.rotation
+            this.rotateCanvas(this.rotation-this.temp_rotation);
+            this.temp_rotation = this.rotation;
         },
 
         // ------------------------------------------------------------------------------
 
-        setFilters(){
-            this.imgContrast = document.getElementById("id1").value
-            this.imgBrightness = document.getElementById("id2").value
-            this.updateFilters()
+        adjustBrightness(brightness){
+            this.tempBrightness = brightness;
+            this.currentImage.filters[0].brightness = this.tempBrightness / 200;
+            this.currentImage.applyFilters();
+            this.canvas.renderAll();
         },
-        updateFilters(){
-            this.imgElement.style.filter = "brightness(" + this.imgBrightness + "%) contrast(" + this.imgContrast +"%)"
+        adjustContrast(contrast){
+            this.tempContrast = contrast;
+            this.currentImage.filters[1].contrast = this.tempContrast / 200;
+            this.currentImage.applyFilters();
+            this.canvas.renderAll();
+        },
+        pushFilter(){
+            this.currentImage.filters.push(new fabric.fabric.Image.filters.Brightness({
+                brightness: 0
+            }))
+            this.currentImage.filters.push(new fabric.fabric.Image.filters.Contrast({
+                contrast: 0
+            }));
+            this.currentImage.applyFilters()
+            this.canvas.renderAll();
         },
         resetFilter(){
-            document.getElementById("id1").value = 100
-            document.getElementById("id2").value = 100
-            this.imgBrightness = 100
-            this.imgContrast = 100
-            this.updateFilters()
+            this.tempBrightness = this.brightness;
+            this.tempContrast = this.contrast;
+            this.adjustBrightness(0)
+            this.adjustContrast(0)
         },
         apply_change_filter(){
-            this.take_data()
+           this.brightness = this.tempBrightness
+           this.contrast = this.tempContrast;
+        //    this.take_data();
         },
 
         //------------------------------------------------------
         
-        draw(){
-            let canvas = document.getElementById("drawingCanvas");
-            let ctx = canvas.getContext("2d");
-            if(this.rotation===0){
-                canvas.width = this.imgElement.naturalWidth;
-                canvas.height = this.imgElement.naturalHeight;
-                ctx.save();
-                ctx.rotate(this.rotation * Math.PI / 180);
-                ctx.drawImage(this.imgElement,0,0);
-                ctx.restore();
+        draw(data){
+            if(!this.canvas.isDrawingMode){
+                this.tempCanvasJSON= this.canvas.toJSON();
+                this.canvas.isDrawingMode = true;
             }
-            else if(this.rotation===90 || this.rotation===-270){
-                canvas.height = this.imgElement.naturalWidth;
-                canvas.width = this.imgElement.naturalHeight;
-                ctx.save();
-                ctx.rotate(this.rotation * Math.PI / 180);
-                ctx.drawImage(this.imgElement,0,-canvas.width);
-                ctx.restore();
+            if(this.canvas.freeDrawingBrush.width!==data.brushSize){
+                this.canvas.freeDrawingBrush.width = parseInt(data.brushSize, 10);
             }
-            else if(this.rotation===180 || this.rotation===-180){
-                canvas.width = this.imgElement.naturalWidth;
-                canvas.height = this.imgElement.naturalHeight;
-                ctx.save();
-                ctx.rotate(this.rotation * Math.PI / 180);
-                ctx.drawImage(this.imgElement,-canvas.width,-canvas.height);
-                ctx.restore();
-            }
-            else if(this.rotation===270 || this.rotation===-90){
-                canvas.height = this.imgElement.naturalWidth;
-                canvas.width = this.imgElement.naturalHeight;
-                ctx.save();
-                ctx.rotate(this.rotation * Math.PI / 180);
-                ctx.drawImage(this.imgElement,-canvas.height,0);
-                ctx.restore();
-            }
-
-            let x = this.imgElement.naturalWidth/this.imgElement.width
-            let y = this.imgElement.naturalHeight/this.imgElement.height
-            canvas.classList.remove("hidden")
-            this.imgElement.classList.add("hidden")
-            
-            let isDrawing;
-            canvas.onmousedown = (e) => {
-                isDrawing = true;
-                ctx.beginPath();
-                ctx.lineWidth = 10;
-                ctx.strokeStyle = "red";
-                ctx.lineJoin = "round";
-                ctx.lineCap = "round";
-                ctx.moveTo(x*e.offsetX, y*e.offsetY);
-            };
-
-            canvas.onmousemove = (e) => {
-                if (isDrawing) {
-                    ctx.lineTo(x*e.offsetX, y*e.offsetY);
-                    ctx.stroke();
-                }
-            };
-
-            canvas.onmouseup = function () {
-                isDrawing = false;
-                ctx.closePath();
-            };
+            this.canvas.freeDrawingBrush.color = data.brushColor;
         },
         apply_change_draw(){
-            let canvas = document.getElementById("drawingCanvas");
-            this.imgElement.src = canvas.toDataURL();
-            canvas.classList.add("hidden")
-            this.imgElement.classList.remove("hidden")
+            this.canvas.isDrawingMode = false;
+            this.take_data();
         },
         cancelDraw(){
-            let canvas = document.getElementById("drawingCanvas");
-            canvas.classList.add("hidden")
-            this.imgElement.classList.remove("hidden")
+            this.canvas.loadFromJSON(this.tempCanvasJSON);
+            this.canvas.isDrawingMode = false;
         },
 
+        // ------------------------------------------------------
+
+        zoom(zoomLevel){
+            this.canvas.zoomToPoint({ x: this.canvas.width / 2, y: this.canvas.height / 2 }, zoomLevel/100);
+            this.canvas.requestRenderAll();
+        },
         // ----------------- Other Methods --------------------
 
         take_data(){
-            if(this.idx < this.edit_data.length-1){ 
-                this.edit_data = this.edit_data.slice(0,this.idx+1);
-                this.edit_data.push({"crop_data": this.crop,"rotation_data":this.rotation,"filter_data":[this.imgBrightness,this.imgContrast]});
-                this.idx++; 
-            }
-            else if(this.idx == this.edit_data.length-1){
-                this.edit_data.push({"crop_data": this.crop,"rotation_data":this.rotation,"filter_data":[this.imgBrightness,this.imgContrast]});
-                this.idx++; 
-            }
+            this.actionStack.splice(this.currentActionIndex + 1);
+            this.actionStack.push(this.canvas.toJSON());
+            this.currentActionIndex++;
         },
-        
+
+        imageLoadToCanvas(){
+            fabric.fabric.Image.fromURL(this.img.src, img => {
+                img.selectable = true;
+                img.setControlsVisibility({ mtr: false })
+                img.scaleToWidth(this.canvas.width)
+                img.scaleToHeight(this.canvas.height)
+                this.canvas.add(img);
+                this.canvas.centerObject(img);
+                this.currentImage = img;
+                let objects = this.canvas.getObjects();
+                var selection = new fabric.fabric.ActiveSelection(objects, {
+                    canvas: this.canvas,
+                });
+                this.canvas.setActiveObject(selection);   
+                this.canvas.discardActiveObject();        
+                this.canvas.requestRenderAll();
+                this.pushFilter();
+                this.take_data();
+            });
+        },
+        initializeFabricCanvas(){
+            this.canvas = new fabric.fabric.Canvas(this.$refs.canvas);
+            this.canvas.backgroundColor = "#E1E3E9";
+            this.canvas.preserveObjectStacking = true;
+            this.canvas.setWidth(500);
+            this.canvas.setHeight(500);
+        },
         async make_connection(){
             this.connection = new WebSocket("ws://localhost:8181/")
             this.connection.onmessage = (e) => {
@@ -359,60 +341,36 @@ export default {
                             resolve(e.target.result)
                         })
                         v.then((value)=>{
-                            document.getElementById("scanImg").setAttribute("src",value)
                             this.img.src = value
+                            this.imageLoadToCanvas();
                         })
                     }
                    
                 }
             }
         }
+
     },
     mounted() {
-        this.imgElement = document.getElementById("scanImg")
-        this.img = new Image();     
+        this.img = new Image();
+        this.initializeFabricCanvas();
         this.make_connection();
-        this.connection.onopen = function (e) {
-            console.log(e)
+
+        this.connection.onopen = function () {
             console.log("successfully connected")
         }
-
-        document.getElementById("id1").addEventListener("input",this.setFilters)
-        document.getElementById("id2").addEventListener("input",this.setFilters)
        
     },
 }
 </script>
 
 <style scoped>
-.display{
-    display: none;
-}
-.hidden{
-    display: none !important;
-}
-/* Image Element */
-#scanImg { 
-    overflow: hidden;
-    max-height: 60vh; 
-    max-width: 60vh;
-}
-#drawingCanvas{
-    border: 1px solid black;
-    overflow: hidden;
-    max-height: 60vh; 
-    max-width: 60vh;
-}
-#scanDiv {
-    height: 60vh;
-    margin-right: 10%;
-    margin-left: 10%;
-    border: 1px solid;
+
+.can {
+  border: 1px solid black;
 }
 
-span {
-    display: block;
-    margin: 10px;
-}
+
+
 
 </style>

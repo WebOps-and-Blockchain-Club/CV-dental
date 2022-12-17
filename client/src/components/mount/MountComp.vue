@@ -70,7 +70,7 @@
 
 <script>
 
-import imgicon from "../../assets/image_upload.jpg";
+import imgicon from "../../assets/logo.png";
 
 export default {
     name: 'MountComp',

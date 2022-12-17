@@ -1,92 +1,91 @@
 <template>
     <div>
         <div class="buttons">
-             <!-----------------------CROP|TRANSFORM|FILTER|DRAW BUTTONS---------------------------->
-            <button @click="toggleShowCropButtons" class="icnBtn btn btn-light" v-if="showEditBtns ">
-                <img :src="cropBtnIcn" title="Crop Image" class="icn-img">
-                Crop
-            </button>
-            <button @click="toggleShowTransfromButtons" class = "icnBtn btn btn-light" v-if="showEditBtns">
-                <img :src="transformBtnIcn" title="Transform" class="icn-img">
-                Transform
-            </button>
-            <button @click="toggleShowFilterButtons " class="icnBtn btn btn-light" v-if="showEditBtns">
-                <img :src="filterBtnIcn" title="Filters" class="icn-img">
-                Filter
-            </button>
-            <button @click="toggleShowDrawButtons" class="icnBtn btn btn-light" v-if="showEditBtns">
-                <img :src="drawBtnIcn" title="Draw" class="icn-img">
-                Draw
-            </button>
+            <!-----------------------CROP|TRANSFORM|FILTER|DRAW BUTTONS---------------------------->
+            <div v-if="showEditBtns">
+                <button v-for="buttonDetail in editBtn" :key="buttonDetail.id" @click="buttonDetail.method"
+                    class="btn btn-light" :title="buttonDetail.title" >
+                    <img :src="buttonDetail.img" class="btn-img" />
+                    {{buttonDetail.text}}
+                </button> 
+            </div>
 
             <!-----------------------CROP|TRANSFORM|FILTER|DRAW'S OPTION BUTTONS------------------------->
             <div v-if = "showCrop">
                 <button v-for="buttonDetail in cropBtn" :key="buttonDetail.id" @click="buttonDetail.method"
-                    class="icnBtn btn-light ">
-                    <img :src="buttonDetail.img" :title="buttonDetail.title" class="icn-img" />
+                    class="btn btn-light" :title="buttonDetail.title">
+                    <img :src="buttonDetail.img"  class="btn-img" />
                 </button>    
             </div>
-            <div v-if = "showTransform">
+
+            <div v-if ="showTransform">
                 <button v-for="buttonDetail in transformBtn" :key="buttonDetail.id" @click="buttonDetail.method"
-                    class="icnBtn btn-light">
-                    <img :src="buttonDetail.img" :title="buttonDetail.title" class="icn-img" />
+                    class="btn btn-light" :title="buttonDetail.title">
+                    <img :src="buttonDetail.img" class="btn-img" />
                 </button> 
             </div>
              
-            <div class="d-flex flex-row justify-content-center hidden" id="filter">
-                <div class="range_panel display">
-                    <span  class="d-flex flex-row">
-                        <label class="label">Contrast</label>
-                        <input v-model="contrastValue" id="id1" class="fit-val form-range" type="range" min="0" max="200"/>
-                        <div class="val mx-2" id="contrast">{{contrastValue}}</div>
-                    </span>
-                    <span class="d-flex flex-row">
-                        <label class="label">Brightness</label>   
-                        <input v-model="brightnesValue" id="id2" class="fit-val form-range" type="range" min="0" max="200"/>
-                        <div class="val mx-2" id="bright">{{brightnesValue}}</div>
-                    </span>
+            <div v-show="showFilters">
+                <div class="d-flex flex-row justify-content-center align-items-center">
+                    <div class="range_panel">
+                        <span  class="d-flex flex-row">
+                            <label class="filter-label">Contrast</label>
+                            <input v-model="contrastValue" class="form-range slider" type="range" min="-100" max="100" @input="adjustContrast"/>
+                            <div class="mx-2">{{contrastValue}}</div>
+                        </span>
+                        <span class="d-flex flex-row">
+                            <label class="filter-label">Brightness</label>   
+                            <input v-model="brightnessValue" class="form-range slider" type="range" min="-100" max="100" @input="adjustBrightness"/>
+                            <div class="mx-2">{{brightnessValue}}</div>
+                        </span>
+                    </div>
+    
+                    <button @click="clickApplyFilter" class="btn btn-light">
+                        <img :src="replaceBtnIcn" title="Replace Image" class="btn-img"/>
+                    </button>
+                    <button @click="clickFilterCancel" class="btn btn-light">
+                        <img :src="cancelBtnIcn" title="Cancel Changes" class="btn-img"/>
+                    </button>
                 </div>
-
-
-                <button @click="clickApplyFilter" class="icnBtn btn btn-light">
-                    <img :src="replaceBtnIcn" title="Replace Image" class="icn-img"/>
-                </button>
-                <button @click="clickFilterCancel" class="icnBtn btn btn-light">
-                    <img :src="cancelBtnIcn" title="Cancel Changes" class="icn-img"/>
-                </button>
             </div>
 
-            <div class="hidden" id="draw">
-                <div>
-                    <span>Color: </span>
-                    <input type="radio" name="colorRadio" value="black" checked />
-                    <label for="black" class="mx-1">Black</label>
-                    <input type="radio" name="colorRadio" value="white" />
-                    <label for="black" class="mx-1">White</label>
-                    <input type="radio" name="colorRadio" value="red" />
-                    <label for="black" class="mx-1">Red</label>
-                    <input type="radio" name="colorRadio" value="green" />
-                    <label for="black" class="mx-1">Green</label>
-                    <input type="radio" name="colorRadio" value="blue" />
-                    <label for="black" class="mx-1">Blue</label>
-                </div>
-                <div>
-                    <button id="clear" class="icnBtn btn btn-light" >Clear</button>
-                    <button @click="clickApplyDrawing" id="clear" class="icnBtn btn btn-light" >
-                        <img :src="replaceBtnIcn" title="Replace Image" class="icn-img"/>
-                    </button>
-                    <button @click="clickDrawCancel" id="clear" class="icnBtn btn btn-light" >
-                        <img :src="cancelBtnIcn" title="Cancel Changes" class="icn-img"/>
-                    </button>
-                </div>
+            <div v-show="showDraw">
+              <div class="d-flex flex-column align-items-center">
+                  <div @click="clickSelectColor($event)">
+                      <button v-for="buttonDetail in colorBtn" :key="buttonDetail.id" 
+                          class="btn" :id="buttonDetail.color" :style="buttonDetail.style" :class="{selected: buttonDetail.selected}">
+                      </button>  
+                  </div>
+                  <span class="d-flex flex-row">
+                      <label class="filter-label">Brush Size</label>   
+                      <input v-model="brushSize" id="id2" class="form-range slider" type="range" min="1" max="30" step="1" @input="adjustBrushSize"/>
+                      <div class="mx-2">{{brushSize}}</div>
+                  </span>  
+                  <div>
+                      <button id="clear" class="btn btn-light" >Clear</button>
+                      <button @click="clickApplyDrawing" id="clear" class="btn btn-light" >
+                          <img :src="replaceBtnIcn" title="Replace Image" class="btn-img"/>
+                      </button>
+                      <button @click="clickDrawCancel" id="clear" class="btn btn-light" >
+                          <img :src="cancelBtnIcn" title="Cancel Changes" class="btn-img"/>
+                      </button>
+                  </div>
+              </div>
             </div>
         </div>
-    </div>
-    <div class="buttons">
-        <button @click="mount" class="icnBtn btn btn-success hidden">
-            <img :src="replaceBtnIcn" title="Done" class="icn-img">
-            done
-        </button>
+        <div class="d-flex flex-row align-items-center zoom-panel my-2 mx-auto" >
+            <img :src="minusBtnIcn" class="zoom-icn" @click="zoomOut" title="Zoom Out">
+            <input v-model="zoomValue" class="form-range slider" type="range" min="10" max="500" @input="adjustZoom"/>
+            <img :src="plusBtnIcn" class="zoom-icn" @click="zoomIn" title="Zoom In">
+            <div class="mx-2">{{zoomValue}}%</div>
+            <img :src="fitZoomBtnIcn" class="zoom-icn" @click="fitZoom" title="Fit Zoom">
+        </div>
+        <!-- <div v-if="showEditBtns" class="buttons">
+            <button @click="mount" class="btn btn-success hidden">
+                <img :src="replaceBtnIcn" title="Done" class="btn-img">
+                done
+            </button>
+        </div> -->
     </div>
 </template>
 <script>
@@ -99,6 +98,10 @@ import rotateLeft from "../../assets/circular-counterclockwise-arrow-rotation.pn
 import rotateRight from "../../assets/rotating-arrow-symbol.png"    
 import replace from "../../assets/true.png"
 import cancel from "../../assets/forbidden.png"
+import plus from "../../assets/plus.png"
+import minus from "../../assets/minus.png"
+import fitZoom from "../../assets/fit-zoom.png"
+
 
 
 export default {
@@ -112,13 +115,27 @@ export default {
             filterBtnIcn: filter,
             replaceBtnIcn: replace,
             cancelBtnIcn: cancel,
+            plusBtnIcn : plus,
+            minusBtnIcn: minus,
+            fitZoomBtnIcn : fitZoom,
             showEditBtns: true,
             showTransform: false,
             showCrop: false,
             showFilters: false,
             showDraw: false,
-            contrastValue:100,
-            brightnesValue: 100,
+            contrastValue:0,
+            previousContrast:0,
+            brightnessValue: 0,
+            previousBrightness:0,
+            zoomValue:100,
+            selectedColor: 'black',
+            brushSize:10,
+            editBtn:[
+                {id:0, img: crop, title: "Crop Image", text:"Crop", method: this.toggleShowCropButtons},
+                {id:1, img: transform, title: "Transform Image", text:"transform", method: this.toggleShowTransfromButtons},
+                {id:2, img: filter, title: "Filter", text:"Filter", method: this.toggleShowFilterButtons},
+                {id:3, img: draw, title: "Draw", text:"Draw", method: this.toggleShowDrawButtons},
+            ],
             cropBtn: [
                 { id: 0, img: replace, title: "Replace Image", method: this.clickApplyCrop },
                 { id: 1, img: cancel, title: "Cancel Change", method: this.clickCropCancel}
@@ -128,14 +145,23 @@ export default {
                 { id: 1 , img: rotateRight, title: "Rotate Right", method: this.clickRotateRight },
                 { id: 2, img: replace, title: "Replace Image", method: this.clickApplyTransform },
                 { id: 3, img: cancel, title: "Cancel Change", method: this.clickTransformCancel}
+            ],
+            colorBtn:[
+                {id:"0",color:"black",style:{"background-color":"black",width:"40px",height:"40px"},selected:true},
+                {id:"1",color:"yellow",style:{"background-color":"yellow",width:"40px",height:"40px"},selected:false},
+                {id:"2",color:"red",style:{"background-color":"red",width:"40px",height:"40px"},selected:false},
+                {id:"3",color:"green",style:{"background-color":"green",width:"40px",height:"40px"},selected:false},
+                {id:"4",color:"blue",style:{"background-color":"blue",width:"40px",height:"40px"},selected:false},
             ]
         }
     },
     methods: {
+
+        // ------------------Toggle Methods ------------------
         toggleShowCropButtons(){
             this.showEditBtns = false;
             this.showCrop = true;
-            this.$emit('crop')
+            this.$emit('crop');
         },
         toggleShowTransfromButtons(){
             this.showEditBtns = false;
@@ -143,21 +169,15 @@ export default {
         },
         toggleShowFilterButtons(){
             this.showEditBtns = false;
-            document.getElementById("filter").classList.remove("hidden");
+            this.showFilters = true;
         },
         toggleShowDrawButtons(){
             this.showEditBtns = false;
-            this.showDraw = true
-            document.getElementById("draw").classList.remove("hidden");
-            this.$emit('draw')
-        },
-        clickRotateRight() {
-            this.$emit('rotateRight')
-        },
-        clickRotateLeft() {
-            this.$emit('rotateLeft')
+            this.showDraw = true;
+            this.$emit('draw',{"brushColor": this.selectedColor,"brushSize":this.brushSize});
         },
 
+       
         // ----------------Apply Methods-----------------------
         clickApplyCrop() {
             this.showEditBtns = true;
@@ -169,14 +189,16 @@ export default {
             this.showTransform = false;
             this.$emit('apply_change_transform')
         },
-        clickApplyFilter(){
-            document.getElementById("filter").classList.add("hidden");
+        clickApplyFilter(){   
             this.showEditBtns = true;
+            this.showFilters = false;
+            this.previousBrightness =this.brightnessValue;
+            this.previousContrast = this.contrastValue;
             this.$emit('apply_change_filter')
         },
         clickApplyDrawing(){
-            document.getElementById("draw").classList.add("hidden");
             this.showEditBtns = true;
+            this.showDraw = false;
             this.$emit('apply_change_draw')
         },
         
@@ -189,53 +211,126 @@ export default {
         clickCropCancel() {
             this.showEditBtns = true;
             this.showCrop = false;
-            this.$emit('cancelCrop')
-            
+            this.$emit('cancelCrop')  
         },
-        clickFilterCancel(){
-            document.getElementById("filter").classList.add("hidden");
+        clickFilterCancel(){   
             this.showEditBtns = true;
+            this.showFilters = false;
+            this.brightnessValue =this.previousBrightness;
+            this.contrastValue =this.previousContrast;
             this.$emit('reset_filter');
         },
-        clickDrawCancel(){
-            document.getElementById("draw").classList.add("hidden");
+        clickDrawCancel(){      
             this.showEditBtns = true;
+            this.showDraw = false;
             this.$emit('cancelDraw');
-        }
-    },
-    mounted(){
+        },
 
-    },
-    
+        // ---------------- Other Methods --------------------
+
+        clickRotateRight() {
+            this.$emit('rotateRight');
+        },
+        clickRotateLeft() {
+            this.$emit('rotateLeft');
+        },
+        adjustBrightness(){
+            this.$emit('adjustBrightness',this.brightnessValue);
+        },
+        adjustContrast(){
+            this.$emit('adjustContrast',this.contrastValue);
+        },
+        adjustBrushSize(){
+            this.$emit('draw',{"brushColor": this.selectedColor,"brushSize":this.brushSize});
+        },
+        adjustZoom(){
+            this.$emit('zoom',this.zoomValue);
+        },
+        zoomIn(){
+            this.zoomValue+=20;
+            this.$emit('zoom',this.zoomValue);
+        },
+        zoomOut(){
+            this.zoomValue-=20;
+            this.$emit('zoom',this.zoomValue);
+        },
+        fitZoom(){
+            this.zoomValue=100;
+            this.$emit('zoom',this.zoomValue);
+        },
+        clickSelectColor(e){
+            if(e.target!==e.currentTarget){
+                this.selectedColor = e.target.id;
+                for(var i=0; i<this.colorBtn.length;i++){
+                    if(this.colorBtn[i].color===this.selectedColor){
+                        this.colorBtn[i].selected = true;
+                    }
+                    else{
+                        this.colorBtn[i].selected = false;
+                    }
+                }
+                this.$emit('draw',{"brushColor": this.selectedColor,"brushSize":this.brushSize});
+            }
+        }
+    },    
 }
 </script>
 
 <style scoped>
-.icn-img {
+.btn-img {
     width: 22px;
+    user-select: none;
+    -webkit-user-drag: none;
 }
-.icnBtn {
+.zoom-icn{
+    margin:5px;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+.btn{
     max-height: 50px;
     margin: 3px;
     padding: 8px;
-    cursor: pointer;
     border: 1.5px solid rgb(148, 147, 147);
 }
-.hidden{
-    display: none !important;
-}
-.label{
+.filter-label{
     text-align: start;
     width: 200px;
 }
-
-#red{
-    background-color: red;
-    width:50px;
-    height: 50px;
-    border: 1px solid red;
-    border-radius: 50%;
+.selected{
+    box-shadow: 0px 0px 10px v-bind(selectedColor);
+    border: none;
+}
+.zoom-panel{
+    padding: 5px;
+    width: 270px;
+    text-align: center;
+    border-radius: 5px;
+    box-shadow: 0px 1px 2px gray;
 }
 
+.slider::-webkit-slider-thumb{
+    transition: all 0.15s ease-in-out;
+    background: black;  
+    box-shadow: 0px 2px 4px  black ;
+}
+.slider::-webkit-slider-thumb:hover{
+    transform: scale(1.2);
+}
+
+.slider::-webkit-slider-runnable-track{
+    height: 0.4rem;
+}
+
+.slider::-moz-range-thumb{
+    transition: all 0.15s ease-in-out;
+    background: black;
+}
+.slider::-moz-range-thumb:hover{
+    transform: scale(1.2);
+}
 
 </style>

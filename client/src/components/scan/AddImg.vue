@@ -1,8 +1,8 @@
 <template>
     <div>
         <button v-for="buttonDetail in buttonDetails" :key="buttonDetail.id" @click="buttonDetail.method"
-            class="icnBtn btn btn-light">
-            <img :src="buttonDetail.img" :title="buttonDetail.title" class="icn-img" />
+            class="btn btn-light">
+            <img :src="buttonDetail.img" :title="buttonDetail.title" class="btn-img" />
         </button>
     </div>
 </template>
@@ -48,11 +48,11 @@ export default {
 </script>
 
 <style scoped>
-.icn-img {
+.btn-img {
     width: 22px;
 }
 
-.icnBtn {
+.btn {
     margin: 3px;
     padding: 8px;
     cursor: pointer;
