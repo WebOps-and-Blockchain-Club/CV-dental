@@ -50,26 +50,34 @@
             </div>
 
             <div v-show="showDraw">
-              <div class="d-flex flex-column align-items-center">
-                  <div @click="clickSelectColor($event)">
-                      <button v-for="buttonDetail in colorBtn" :key="buttonDetail.id" 
-                          class="btn" :id="buttonDetail.color" :style="buttonDetail.style" :class="{selected: buttonDetail.selected}">
-                      </button>  
-                  </div>
-                  <span class="d-flex flex-row">
-                      <label class="filter-label">Brush Size</label>   
-                      <input v-model="brushSize" id="id2" class="form-range slider" type="range" min="1" max="30" step="1" @input="adjustBrushSize"/>
-                      <div class="mx-2">{{brushSize}}</div>
-                  </span>  
-                  <div>
-                      <button id="clear" class="btn btn-light" >Clear</button>
-                      <button @click="clickApplyDrawing" id="clear" class="btn btn-light" >
-                          <img :src="replaceBtnIcn" title="Replace Image" class="btn-img"/>
-                      </button>
-                      <button @click="clickDrawCancel" id="clear" class="btn btn-light" >
-                          <img :src="cancelBtnIcn" title="Cancel Changes" class="btn-img"/>
-                      </button>
-                  </div>
+                <div class="d-flex flex-column align-items-center justify-content-center">
+                    <div class="d-flex flex-row align-items-center justify-content-center">
+                        <button @click = "clickSelectMoveMode" :class="{btnSelected:!paintMode}" class="btn btn-light">
+                            <img :src="moveBtnIcn" class="btn-img"/>
+                        </button>
+                        <button @click = "clickSelectPaintMode" :class="{btnSelected:paintMode}" class="btn btn-light">
+                            <img :src="drawBtnIcn" class="btn-img"/>
+                        </button>
+                        <div @click="clickSelectColor($event)" class="color-panel d-flex flex-row align-items-center">
+                            <button v-for="buttonDetail in colorBtn" :key="buttonDetail.id" 
+                                class="colorBtn" :id="buttonDetail.color" :style="buttonDetail.style" :class="{selected: buttonDetail.selected}">
+                            </button>  
+                        </div>
+                    </div>
+                    <span class="d-flex flex-row">
+                        <label class="filter-label">Brush Size</label>   
+                        <input v-model="brushSize" id="id2" class="form-range slider" type="range" min="1" max="30" step="1" @input="adjustBrushSize"/>
+                        <div class="mx-2">{{brushSize}}</div>
+                    </span>  
+                    <div>
+                        <button id="clear" class="btn btn-light" >Clear</button>
+                        <button @click="clickApplyDrawing" id="clear" class="btn btn-light" title="Replace Image">
+                            <img :src="replaceBtnIcn"  class="btn-img"/>
+                        </button>
+                        <button @click="clickDrawCancel" id="clear" class="btn btn-light" title="Cancel Changes">
+                            <img :src="cancelBtnIcn"  class="btn-img"/>
+                        </button>
+                    </div>
               </div>
             </div>
         </div>
@@ -101,7 +109,7 @@ import cancel from "../../assets/forbidden.png"
 import plus from "../../assets/plus.png"
 import minus from "../../assets/minus.png"
 import fitZoom from "../../assets/fit-zoom.png"
-
+import move from "../../assets/move.png"
 
 
 export default {
@@ -118,15 +126,15 @@ export default {
             plusBtnIcn : plus,
             minusBtnIcn: minus,
             fitZoomBtnIcn : fitZoom,
+            moveBtnIcn : move,
+            paintMode:true,
             showEditBtns: true,
             showTransform: false,
             showCrop: false,
             showFilters: false,
             showDraw: false,
             contrastValue:0,
-            previousContrast:0,
             brightnessValue: 0,
-            previousBrightness:0,
             zoomValue:100,
             selectedColor: 'black',
             brushSize:10,
@@ -147,11 +155,11 @@ export default {
                 { id: 3, img: cancel, title: "Cancel Change", method: this.clickTransformCancel}
             ],
             colorBtn:[
-                {id:"0",color:"black",style:{"background-color":"black",width:"40px",height:"40px"},selected:true},
-                {id:"1",color:"yellow",style:{"background-color":"yellow",width:"40px",height:"40px"},selected:false},
-                {id:"2",color:"red",style:{"background-color":"red",width:"40px",height:"40px"},selected:false},
-                {id:"3",color:"green",style:{"background-color":"green",width:"40px",height:"40px"},selected:false},
-                {id:"4",color:"blue",style:{"background-color":"blue",width:"40px",height:"40px"},selected:false},
+                {id:"0",color:"black",style:{"background-color":"black"},selected:true},
+                {id:"1",color:"yellow",style:{"background-color":"yellow"},selected:false},
+                {id:"2",color:"red",style:{"background-color":"red"},selected:false},
+                {id:"3",color:"green",style:{"background-color":"green"},selected:false},
+                {id:"4",color:"blue",style:{"background-color":"blue"},selected:false},
             ]
         }
     },
@@ -170,10 +178,13 @@ export default {
         toggleShowFilterButtons(){
             this.showEditBtns = false;
             this.showFilters = true;
+            this.brightnessValue=0;
+            this.contrastValue=0;
         },
         toggleShowDrawButtons(){
             this.showEditBtns = false;
             this.showDraw = true;
+            this.paintMode = true;
             this.$emit('draw',{"brushColor": this.selectedColor,"brushSize":this.brushSize});
         },
 
@@ -192,8 +203,6 @@ export default {
         clickApplyFilter(){   
             this.showEditBtns = true;
             this.showFilters = false;
-            this.previousBrightness =this.brightnessValue;
-            this.previousContrast = this.contrastValue;
             this.$emit('apply_change_filter')
         },
         clickApplyDrawing(){
@@ -216,8 +225,6 @@ export default {
         clickFilterCancel(){   
             this.showEditBtns = true;
             this.showFilters = false;
-            this.brightnessValue =this.previousBrightness;
-            this.contrastValue =this.previousContrast;
             this.$emit('reset_filter');
         },
         clickDrawCancel(){      
@@ -229,10 +236,10 @@ export default {
         // ---------------- Other Methods --------------------
 
         clickRotateRight() {
-            this.$emit('rotateRight');
+            this.$emit('rotate',90);
         },
         clickRotateLeft() {
-            this.$emit('rotateLeft');
+            this.$emit('rotate',-90);
         },
         adjustBrightness(){
             this.$emit('adjustBrightness',this.brightnessValue);
@@ -257,6 +264,14 @@ export default {
         fitZoom(){
             this.zoomValue=100;
             this.$emit('zoom',this.zoomValue);
+        },
+        clickSelectMoveMode(){
+            this.paintMode = false;
+            this.$emit('moveMode');
+        },
+        clickSelectPaintMode(){
+            this.paintMode = true;
+            this.$emit('draw',{"brushColor": this.selectedColor,"brushSize":this.brushSize});
         },
         clickSelectColor(e){
             if(e.target!==e.currentTarget){
@@ -301,17 +316,36 @@ export default {
     width: 200px;
 }
 .selected{
-    box-shadow: 0px 0px 10px v-bind(selectedColor);
+    box-shadow: 0px 0px 15px v-bind(selectedColor);
     border: none;
 }
+.btnSelected{
+    background-color: rgb(140, 140, 140);
+}
+
+.colorBtn{
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    border:none;
+    margin:6px;
+}
 .zoom-panel{
+    position: absolute;
+    bottom: 5px;
+    right: 10px;
     padding: 5px;
     width: 270px;
     text-align: center;
     border-radius: 5px;
     box-shadow: 0px 1px 2px gray;
 }
-
+.color-panel{
+    height: 43.45px;
+    margin: 3px;
+    border-radius: 5px;
+    border:1.5px solid rgb(148, 147, 147)
+}
 .slider::-webkit-slider-thumb{
     transition: all 0.15s ease-in-out;
     background: black;  

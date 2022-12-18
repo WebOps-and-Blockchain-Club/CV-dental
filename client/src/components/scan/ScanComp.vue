@@ -14,8 +14,7 @@
 
         <EditImg @crop="cropImg"
                 @reset_filter = "resetFilter" 
-                @rotateLeft="rotateImgLeft"
-                @rotateRight="rotateImgRight" 
+                @rotate="rotateCanvas"
                 @draw = "draw"
                 @apply_change_crop="apply_change_crop"
                 @apply_change_transform = "apply_change_transform"
@@ -27,6 +26,7 @@
                 @cancelCrop="cancelCrop" 
                 @cancelTransform = "cancelTransform"
                 @cancelDraw = "cancelDraw"
+                @moveMode = "moveMode"
                 @zoom = "zoom" />
     </div>
 </template>
@@ -48,21 +48,15 @@ export default {
     data() {
         return {
             canvas:null,
+            canvasBGColor:"#E1E3E9",
+            canvasWidth:500,
+            canvasHeight:500,
             currentImage:null,
-            img:null, 
+            img:new Image(), 
             replaceBtnIcn : replace,
             cancelBtnIcn : cancel,
             connection: null,
             selectionRect:null,
-            temp_rotation: 0,
-            rotation: 0,
-            imgBrightness: 0,
-            tempBrightness:0,
-            imgContrast: 0,
-            tempContrast:0,
-            currentBrushColor:"black",
-            brushSize: 1,
-            tempCanvasJSON:null,
             actionStack: [],
             currentActionIndex: -1,
             file: null,    // connection
@@ -76,6 +70,8 @@ export default {
         delScanImg() {
             this.canvas.dispose();
             this.initializeFabricCanvas();
+            this.actionStack = [];
+            this.currentActionIndex =-1
         },
         resetImg() {
             this.currentActionIndex = 0;
@@ -115,7 +111,6 @@ export default {
         // -------------------------------------------------------------------------------------------------
         
         cropImg() {   
-            this.tempCanvasJSON = this.canvas.toJSON();
             this.canvas.setViewportTransform([1,0,0,1,0,0]);
             this.canvas.setZoom(1);
             this.canvas.getObjects().forEach((obj) => {
@@ -132,8 +127,10 @@ export default {
                 originY: "top",
                 stroke: "black",
                 opacity: 1,
-                width: this.canvas.width,
-                height: this.canvas.height,
+                top: this.currentImage.top,
+                left: this.currentImage.left,
+                width: this.currentImage.width,
+                height: this.currentImage.height,
                 transparentCorners: false,
                 cornerColor: "white",
                 cornerStrokeColor: "black",
@@ -145,8 +142,9 @@ export default {
                 borderScaleFactor: 1.3,
             });
             this.selectionRect.setControlVisible('mtr', false);
-            this.selectionRect.scaleToWidth(300);
-            this.canvas.centerObject(this.selectionRect);
+            this.selectionRect.scaleToHeight(this.currentImage.getScaledHeight());
+            this.selectionRect.scaleToWidth(this.currentImage.getScaledWidth());
+            // this.canvas.centerObject(this.selectionRect);
             this.selectionRect.visible = true;
             this.canvas.add(this.selectionRect);
         },  
@@ -163,7 +161,7 @@ export default {
 
             var cropped = new Image();
             cropped.src = this.canvas.toDataURL({
-                multiplier:5,   // for maintaing Quality
+                multiplier:4,   // for maintaing Quality
                 left: rect.left,
                 top: rect.top,
                 width: rect.width,
@@ -175,39 +173,25 @@ export default {
                 let image = new fabric.fabric.Image(cropped);
                 image.left = rect.left;
                 image.top = rect.top;
-                image.scaleToWidth(image.width/5); // for viewing scale down again
-                image.scaleToHeight(image.height/5);
+                image.scaleToWidth(image.width/4); // for viewing scale down again
+                image.scaleToHeight(image.height/4);
                 image.setCoords();
                 image.setControlsVisibility({ mtr: false })
                 this.currentImage = image;
-                this.pushFilter();
                 this.canvas.add(image);
-                let objects = this.canvas.getObjects();
-                var selection = new fabric.fabric.ActiveSelection(objects, {
-                    canvas: this.canvas,
-                });
-                this.canvas.setActiveObject(selection);   //selecting all objects...
-                this.canvas.discardActiveObject();        //...and deselecting them
-                this.canvas.requestRenderAll();
                 this.canvas.backgroundColor = "#E1E3E9";
+                this.enableObjectScaling();
+                this.pushFilter();
                 this.canvas.renderAll();
                 this.take_data();
             }
         },
         cancelCrop() {
-            this.canvas.loadFromJSON(this.tempCanvasJSON);
+            this.canvas.loadFromJSON(this.actionStack[this.currentActionIndex]);
         },
 
         // ----------------------------------------------------------------------------
 
-        rotateImgLeft() {
-            this.temp_rotation-=90    
-            this.rotateCanvas(-90)
-        },
-        rotateImgRight() {
-            this.temp_rotation+=90
-            this.rotateCanvas(90)
-        },
         rotateCanvas(degree){
             let canvasCenter = new fabric.fabric.Point(this.canvas.getWidth() / 2, this.canvas.getHeight() / 2) // center of canvas
             let radians = fabric.fabric.util.degreesToRadians(degree)
@@ -221,26 +205,29 @@ export default {
             });
             this.canvas.renderAll()
         },
+        flipCanvas(axis){   
+            if(axis==='X') this.currentImage.flipX = !this.currentImage.flipX;
+            else if(axis==="Y") this.currentImage.flipY = !this.currentImage.flipY;
+            this.canvas.renderAll()
+        },
         apply_change_transform(){
             this.rotation = this.temp_rotation;
             this.take_data();
         },
         cancelTransform(){
-            this.rotateCanvas(this.rotation-this.temp_rotation);
-            this.temp_rotation = this.rotation;
+            this.canvas.loadFromJSON(this.actionStack[this.currentActionIndex]);
         },
 
         // ------------------------------------------------------------------------------
 
         adjustBrightness(brightness){
-            this.tempBrightness = brightness;
-            this.currentImage.filters[0].brightness = this.tempBrightness / 200;
+            console.log(this.currentImage.getOriginalSize())
+            this.currentImage.filters[0].brightness = brightness / 200;
             this.currentImage.applyFilters();
             this.canvas.renderAll();
         },
         adjustContrast(contrast){
-            this.tempContrast = contrast;
-            this.currentImage.filters[1].contrast = this.tempContrast / 200;
+            this.currentImage.filters[1].contrast = contrast / 200;
             this.currentImage.applyFilters();
             this.canvas.renderAll();
         },
@@ -255,22 +242,31 @@ export default {
             this.canvas.renderAll();
         },
         resetFilter(){
-            this.tempBrightness = this.brightness;
-            this.tempContrast = this.contrast;
             this.adjustBrightness(0)
             this.adjustContrast(0)
         },
         apply_change_filter(){
-           this.brightness = this.tempBrightness
-           this.contrast = this.tempContrast;
-        //    this.take_data();
+            fabric.fabric.Image.fromURL(this.currentImage.getSrc(true),(image)=>{
+                image.left = this.currentImage.left;
+                image.top = this.currentImage.top;
+                image.scaleToHeight(this.currentImage.getScaledHeight());
+                image.setCoords();
+                image.setControlsVisibility({ mtr: false })
+                this.currentImage = image;
+                
+                this.canvas.clear();
+                this.canvas.backgroundColor = this.canvasBGColor;
+                this.canvas.add(image);
+                this.pushFilter();
+                this.enableObjectScaling();
+                this.take_data();
+            })     
         },
 
         //------------------------------------------------------
         
         draw(data){
             if(!this.canvas.isDrawingMode){
-                this.tempCanvasJSON= this.canvas.toJSON();
                 this.canvas.isDrawingMode = true;
             }
             if(this.canvas.freeDrawingBrush.width!==data.brushSize){
@@ -280,10 +276,45 @@ export default {
         },
         apply_change_draw(){
             this.canvas.isDrawingMode = false;
-            this.take_data();
+            let rect = new fabric.fabric.Rect({
+                left: this.currentImage.left,
+                top: this.currentImage.top,
+                width: this.currentImage.getScaledWidth(),
+                height: this.currentImage.getScaledHeight(),
+                absolutePositioned: true
+            });
+            this.currentImage.clipPath = rect;
+            var cropped = new Image();
+            cropped.src = this.canvas.toDataURL({
+                multiplier:4,   // for maintaing Quality
+                left: rect.left,
+                top: rect.top,
+                width: rect.width,
+                height: rect.height,
+            });
+            this.canvas.clear();
+            cropped.onload = () => {
+                let image = new fabric.fabric.Image(cropped);
+                image.left = rect.left;
+                image.top = rect.top;
+                image.scaleToWidth(image.width/4); // for viewing scale down again
+                image.scaleToHeight(image.height/4);
+                image.setCoords();
+                image.setControlsVisibility({ mtr: false })
+                this.currentImage = image;
+                this.canvas.add(image);
+                this.canvas.backgroundColor = "#E1E3E9";
+                this.enableObjectScaling();
+                this.pushFilter();
+                this.canvas.renderAll();
+                this.take_data();
+            }
         },
         cancelDraw(){
-            this.canvas.loadFromJSON(this.tempCanvasJSON);
+            this.canvas.loadFromJSON(this.actionStack[this.currentActionIndex]);
+            this.canvas.isDrawingMode = false;
+        },
+        moveMode(){
             this.canvas.isDrawingMode = false;
         },
 
@@ -300,33 +331,40 @@ export default {
             this.actionStack.push(this.canvas.toJSON());
             this.currentActionIndex++;
         },
-
         imageLoadToCanvas(){
-            fabric.fabric.Image.fromURL(this.img.src, img => {
-                img.selectable = true;
-                img.setControlsVisibility({ mtr: false })
-                img.scaleToWidth(this.canvas.width)
-                img.scaleToHeight(this.canvas.height)
-                this.canvas.add(img);
-                this.canvas.centerObject(img);
-                this.currentImage = img;
-                let objects = this.canvas.getObjects();
-                var selection = new fabric.fabric.ActiveSelection(objects, {
-                    canvas: this.canvas,
-                });
-                this.canvas.setActiveObject(selection);   
-                this.canvas.discardActiveObject();        
-                this.canvas.requestRenderAll();
+            fabric.fabric.Image.fromURL(this.img.src, (image) => {
+                if(image.width>image.height){
+                    image.scaleToWidth(this.canvas.width)
+                }
+                else{
+                    image.scaleToHeight(this.canvas.height)
+                }
+                image.setCoords();
+                image.setControlsVisibility({ mtr: false })
+                this.currentImage = image;
+
+                this.canvas.add(image);
+                this.canvas.centerObject(image);
                 this.pushFilter();
+                this.enableObjectScaling();
                 this.take_data();
             });
         },
+        enableObjectScaling(){
+            let objects = this.canvas.getObjects();
+            var selection = new fabric.fabric.ActiveSelection(objects, {
+                canvas: this.canvas,
+            });
+            this.canvas.setActiveObject(selection);   
+            this.canvas.discardActiveObject();        
+            this.canvas.requestRenderAll();
+        },
         initializeFabricCanvas(){
             this.canvas = new fabric.fabric.Canvas(this.$refs.canvas);
-            this.canvas.backgroundColor = "#E1E3E9";
+            this.canvas.backgroundColor = this.canvasBGColor;
             this.canvas.preserveObjectStacking = true;
-            this.canvas.setWidth(500);
-            this.canvas.setHeight(500);
+            this.canvas.setWidth(this.canvasWidth);
+            this.canvas.setHeight(this.canvasHeight);
         },
         async make_connection(){
             this.connection = new WebSocket("ws://localhost:8181/")
@@ -348,18 +386,15 @@ export default {
                    
                 }
             }
+            this.connection.onopen = function () {
+                console.log("successfully connected")
+            }
         }
 
     },
     mounted() {
-        this.img = new Image();
         this.initializeFabricCanvas();
         this.make_connection();
-
-        this.connection.onopen = function () {
-            console.log("successfully connected")
-        }
-       
     },
 }
 </script>
