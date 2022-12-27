@@ -1,35 +1,38 @@
 <template>
   <div>
-    <MountComp v-if="gotoMount" @scan="setScanner" />
-    <ScanComp v-if="gotoScan" @scaned="setMount" />
+    <!--MountComp v-if="gotoMount" @scan="setScanner" /-->
+    <ScanComp v-if="gotoScan" @scaned="setChart" />
+    <ChartComp v-if="gotoChart" @scan="setScanner"/>
   </div>
 </template >
     
 <script>
 import ScanComp from './components/scan/ScanComp.vue'
-import MountComp from './components/mount/MountComp.vue'
+//import MountComp from './components/mount/MountComp.vue'
+import ChartComp from './components/chart/ChartComp.vue'
 
 export default {
   name: 'App',
   data() {
     return {
       gotoScan: false,
-      gotoMount: true,
+      gotoMount: false,
+      gotoChart: true,
     }
   },
   methods: {
     setScanner() {
       this.gotoScan = true;
-      this.gotoMount = false;
+      this.gotoChart = false;
     },
-    setMount() {
-      this.gotoMount = true
+    setChart() {
+      this.gotoChart = true
       this.gotoScan = false;
     }
   },
   components: {
     ScanComp,
-    MountComp
+    ChartComp
   },
 }
 </script>
