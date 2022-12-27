@@ -1,6 +1,10 @@
 <template>
-    <h1>Dental Chart</h1>
+    <title>Dental Chart</title>
   <div id="app">
+    <div class="flex-parent-element">
+
+    <div class="flex-child-element chart">
+
     <div class="UpperJaw">
       <button type="submit" @click="clickTooth"><img :src="tpu1" title="Tooth 1"/></button>
       <button type="submit" @click="clickTooth"><img :src="tpu2" title="Tooth 2"/></button>
@@ -37,8 +41,16 @@
       <button type="submit" @click="clickTooth"><img :src="tpd18" title="Tooth 18"/></button>
       <button type="submit" @click="clickTooth"><img :src="tpd17" title="Tooth 17"/></button>
     </div>
-  </div>
 
+    </div>
+
+    <div class="flex-child-element preview-pane">
+    Preview goes here
+    </div>
+
+    </div>
+    
+  </div>
 </template>
 
 <script>
@@ -129,6 +141,18 @@ export default
     margin:0%;
     padding:0%;
   }
+
+  .flex-parent-element {
+  display: flex;
+  width: 50%;
+  }
+
+  .flex-child-element {
+  flex: 1;
+  border: 2px solid black;
+  margin: 10px;
+  }
+
   button{
     cursor: pointer;
     border:none;
@@ -143,6 +167,11 @@ export default
 
   button:hover {
   transform: scale(1.25) perspective(1px);
+  }
+
+  div .preview-pane{
+    display: flex;
+    align-items: center;
   }
 
   div .UpperJaw{
@@ -164,14 +193,12 @@ export default
     background-color:slategray;
   }
 
-  h1{
+  title{
     display: flex;
     justify-content: center;
     align-items: center;
-    margin: 40px;
     background-color: rgb(46, 50, 71);
     color: aliceblue;
-    border-radius: 5px;
     font: 1.6rem/1.25 "Helvetica Neue", Helvetica, Arial, sans-serif;
   }
 

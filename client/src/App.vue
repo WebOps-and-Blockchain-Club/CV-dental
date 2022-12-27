@@ -1,9 +1,7 @@
 <template>
-  <div>
+  <ChartComp v-if="gotoChart" @scan="setScanner"/>
     <!--MountComp v-if="gotoMount" @scan="setScanner" /-->
-    <ScanComp v-if="gotoScan" @scaned="setChart" />
-    <ChartComp v-if="gotoChart" @scan="setScanner"/>
-  </div>
+  <ScanComp v-if="gotoScan" @scaned="setChart" />
 </template >
     
 <script>
@@ -46,7 +44,6 @@ export default {
   letter-spacing: 1px;
   font-weight: bold;
   color: #13232b;
-  margin-top: 60px;
 }
 </style>
     
