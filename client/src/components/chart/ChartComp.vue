@@ -1,6 +1,5 @@
-<template>
+<template class="app">
     <title>Dental Chart</title>
-  <div id="app">
     <div class="flex-parent-element">
 
     <div class="flex-child-element chart">
@@ -49,12 +48,20 @@
     </div>
 
     </div>
-    
-  </div>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
 </template>
 
 <script>
-
 import tooth1 from "../../assets/Teeth_set/1.png";
 import tooth2 from "../../assets/Teeth_set/2.png";
 import tooth3 from "../../assets/Teeth_set/3.png";
@@ -144,7 +151,6 @@ export default
 
   .flex-parent-element {
   display: flex;
-  width: 50%;
   }
 
   .flex-child-element {
@@ -171,6 +177,7 @@ export default
 
   div .preview-pane{
     display: flex;
+    justify-content: center;
     align-items: center;
   }
 
@@ -201,5 +208,5 @@ export default
     color: aliceblue;
     font: 1.6rem/1.25 "Helvetica Neue", Helvetica, Arial, sans-serif;
   }
-
+  
 </style>

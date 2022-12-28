@@ -1,8 +1,4 @@
-<template>
-  <ChartComp v-if="gotoChart" @scan="setScanner"/>
-    <!--MountComp v-if="gotoMount" @scan="setScanner" /-->
-  <ScanComp v-if="gotoScan" @scaned="setChart" />
-</template >
+<template><ChartComp v-if="gotoChart" @scan="setScanner"/><ScanComp v-if="gotoScan" @scaned="setChart" /></template >
     
 <script>
 import ScanComp from './components/scan/ScanComp.vue'
@@ -44,6 +40,9 @@ export default {
   letter-spacing: 1px;
   font-weight: bold;
   color: #13232b;
+  background-image: url('~@/../src/assets/chartbg.jpg');
+  background-size: contain;
 }
+
 </style>
     
