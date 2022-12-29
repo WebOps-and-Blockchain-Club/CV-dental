@@ -41,7 +41,7 @@ export default {
   font-weight: bold;
   color: #13232b;
   background-image: url('~@/../src/assets/chartbg.jpg');
-  background-size: contain;
+  background-size: cover;
 }
 
 </style>

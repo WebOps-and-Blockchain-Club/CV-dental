@@ -1,99 +1,97 @@
 <template class="app">
-    <title>Dental Chart</title>
+
+    <div class="appBar">
+      <img class="logo" :src="logo"/>
+      Dental Appointment
+    </div>
+
     <div class="flex-parent-element">
+      <div class="flex-child-element patient_card">
+        <p class="cardbar">Patient Info</p>
+        <img class ="Avatar" :src="avatar" alt="Patient Avatar"/>
+        <p>Patient Id :<input type="number" name="P_Id" :id="ids[0]"></p>
+        <p>Name :<input type="text" name="Name" :id="ids[0]"></p>
+        <p>Email:<input type="string" name="Email" :id="ids[0]"></p>
+        <p>Phone:<input type="number" name="Phone" :id="ids[0]"></p>
+      </div>
 
-    <div class="flex-child-element chart">
+      <div class="flex-child-element chart">
+        <div class="d-flex flex-row justify-content-between">
+          <div class="UpperJaw" v-for="id in ids.slice(0,16)" :key="id">
+            <button type="submit" @click="clickTooth"><img :src="buttons[id].image" :title="buttons[id].title"/></button>
+          </div>
+        </div>
+          <br/>
+        <div class="d-flex flex-row justify-content-between">
+          <div class="LowerJaw" v-for="id in ids.slice(16,32)" :key="id">
+            <button type="submit" @click="clickTooth"><img :src="buttons[id].image" :title="buttons[id].title"/></button>
+          </div>
+        </div>
+      </div>
 
-    <div class="UpperJaw">
-      <button type="submit" @click="clickTooth"><img :src="tpu1" title="Tooth 1"/></button>
-      <button type="submit" @click="clickTooth"><img :src="tpu2" title="Tooth 2"/></button>
-      <button type="submit" @click="clickTooth"><img :src="tpu3" title="Tooth 3"/></button>
-      <button type="submit" @click="clickTooth"><img :src="tpu4" title="Tooth 4"/></button>
-      <button type="submit" @click="clickTooth"><img :src="tpu5" title="Tooth 5"/></button>
-      <button type="submit" @click="clickTooth"><img :src="tpu6" title="Tooth 6"/></button>
-      <button type="submit" @click="clickTooth"><img :src="tpu7" title="Tooth 7"/></button>
-      <button type="submit" @click="clickTooth"><img :src="tpu8" title="Tooth 8"/></button>
-      <button type="submit" @click="clickTooth"><img :src="tpu9" title="Tooth 9"/></button>
-      <button type="submit" @click="clickTooth"><img :src="tpu10" title="Tooth 10"/></button>
-      <button type="submit" @click="clickTooth"><img :src="tpu11" title="Tooth 11"/></button>
-      <button type="submit" @click="clickTooth"><img :src="tpu12" title="Tooth 12"/></button>
-      <button type="submit" @click="clickTooth"><img :src="tpu13" title="Tooth 13"/></button>
-      <button type="submit" @click="clickTooth"><img :src="tpu14" title="Tooth 14"/></button>
-      <button type="submit" @click="clickTooth"><img :src="tpu15" title="Tooth 15"/></button>
-      <button type="submit" @click="clickTooth"><img :src="tpu16" title="Tooth 16"/></button>
-    </div>
-    <div class="LowerJaw">
-      <button type="submit" @click="clickTooth"><img :src="tpd32" title="Tooth 32"/></button>
-      <button type="submit" @click="clickTooth"><img :src="tpd31" title="Tooth 31"/></button>
-      <button type="submit" @click="clickTooth"><img :src="tpd30" title="Tooth 30"/></button>
-      <button type="submit" @click="clickTooth"><img :src="tpd29" title="Tooth 29"/></button>
-      <button type="submit" @click="clickTooth"><img :src="tpd28" title="Tooth 28"/></button>
-      <button type="submit" @click="clickTooth"><img :src="tpd27" title="Tooth 27"/></button>
-      <button type="submit" @click="clickTooth"><img :src="tpd26" title="Tooth 26"/></button>
-      <button type="submit" @click="clickTooth"><img :src="tpd25" title="Tooth 25"/></button>
-      <button type="submit" @click="clickTooth"><img :src="tpd24" title="Tooth 24"/></button>
-      <button type="submit" @click="clickTooth"><img :src="tpd23" title="Tooth 23"/></button>
-      <button type="submit" @click="clickTooth"><img :src="tpd22" title="Tooth 22"/></button>
-      <button type="submit" @click="clickTooth"><img :src="tpd21" title="Tooth 21"/></button>
-      <button type="submit" @click="clickTooth"><img :src="tpd20" title="Tooth 20"/></button>
-      <button type="submit" @click="clickTooth"><img :src="tpd19" title="Tooth 19"/></button>
-      <button type="submit" @click="clickTooth"><img :src="tpd18" title="Tooth 18"/></button>
-      <button type="submit" @click="clickTooth"><img :src="tpd17" title="Tooth 17"/></button>
-    </div>
+      <div class="flex-child-element preview-pane">
+        <img class="preview" :src="preview" alt="preview goes here"/>
+      </div>
 
     </div>
 
-    <div class="flex-child-element preview-pane">
-    Preview goes here
-    </div>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
 
-    </div>
-    <br/>
-    <br/>
-    <br/>
-    <br/>
-    <br/>
-    <br/>
-    <br/>
-    <br/>
-    <br/>
-    <br/>
-    <br/>
 </template>
 
 <script>
-import tooth1 from "../../assets/Teeth_set/1.png";
-import tooth2 from "../../assets/Teeth_set/2.png";
-import tooth3 from "../../assets/Teeth_set/3.png";
-import tooth4 from "../../assets/Teeth_set/4.png";
-import tooth5 from "../../assets/Teeth_set/5.png";
-import tooth6 from "../../assets/Teeth_set/6.png";
-import tooth7 from "../../assets/Teeth_set/7.png";
-import tooth8 from "../../assets/Teeth_set/8.png";
-import tooth9 from "../../assets/Teeth_set/9.png";
-import tooth10 from "../../assets/Teeth_set/10.png";
-import tooth11 from "../../assets/Teeth_set/11.png";
-import tooth12 from "../../assets/Teeth_set/12.png";
-import tooth13 from "../../assets/Teeth_set/13.png";
-import tooth14 from "../../assets/Teeth_set/14.png";
-import tooth15 from "../../assets/Teeth_set/15.png";
-import tooth16 from "../../assets/Teeth_set/16.png";
-import tooth17 from "../../assets/Teeth_set/32.png";
-import tooth18 from "../../assets/Teeth_set/31.png";
-import tooth19 from "../../assets/Teeth_set/30.png";
-import tooth20 from "../../assets/Teeth_set/29.png";
-import tooth21 from "../../assets/Teeth_set/28.png";
-import tooth22 from "../../assets/Teeth_set/27.png";
-import tooth23 from "../../assets/Teeth_set/26.png";
-import tooth24 from "../../assets/Teeth_set/25.png";
-import tooth25 from "../../assets/Teeth_set/24.png";
-import tooth26 from "../../assets/Teeth_set/23.png";
-import tooth27 from "../../assets/Teeth_set/22.png";
-import tooth28 from "../../assets/Teeth_set/21.png";
-import tooth29 from "../../assets/Teeth_set/20.png";
-import tooth30 from "../../assets/Teeth_set/19.png";
-import tooth31 from "../../assets/Teeth_set/18.png";
-import tooth32 from "../../assets/Teeth_set/17.png";
+
+import sample from "@/assets/avatar.png";
+
+import dummy1 from "@/assets/logo.jpg";
+
+import placeholder from "@/assets/Sample.jpg"
+
+import tooth1 from "@/assets/Teeth_set/1.png";
+import tooth2 from "@/assets/Teeth_set/2.png";
+import tooth3 from "@/assets/Teeth_set/3.png";
+import tooth4 from "@/assets/Teeth_set/4.png";
+import tooth5 from "@/assets/Teeth_set/5.png";
+import tooth6 from "@/assets/Teeth_set/6.png";
+import tooth7 from "@/assets/Teeth_set/7.png";
+import tooth8 from "@/assets/Teeth_set/8.png";
+import tooth9 from "@/assets/Teeth_set/9.png";
+import tooth10 from "@/assets/Teeth_set/10.png";
+import tooth11 from "@/assets/Teeth_set/11.png";
+import tooth12 from "@/assets/Teeth_set/12.png";
+import tooth13 from "@/assets/Teeth_set/13.png";
+import tooth14 from "@/assets/Teeth_set/14.png";
+import tooth15 from "@/assets/Teeth_set/15.png";
+import tooth16 from "@/assets/Teeth_set/16.png";
+import tooth17 from "@/assets/Teeth_set/17.png";
+import tooth18 from "@/assets/Teeth_set/18.png";
+import tooth19 from "@/assets/Teeth_set/19.png";
+import tooth20 from "@/assets/Teeth_set/20.png";
+import tooth21 from "@/assets/Teeth_set/21.png";
+import tooth22 from "@/assets/Teeth_set/22.png";
+import tooth23 from "@/assets/Teeth_set/23.png";
+import tooth24 from "@/assets/Teeth_set/24.png";
+import tooth25 from "@/assets/Teeth_set/25.png";
+import tooth26 from "@/assets/Teeth_set/26.png";
+import tooth27 from "@/assets/Teeth_set/27.png";
+import tooth28 from "@/assets/Teeth_set/28.png";
+import tooth29 from "@/assets/Teeth_set/29.png";
+import tooth30 from "@/assets/Teeth_set/30.png";
+import tooth31 from "@/assets/Teeth_set/31.png";
+import tooth32 from "@/assets/Teeth_set/32.png";
 
 
 export default
@@ -101,38 +99,44 @@ export default
     name:'ChartComp',
     data(){
         return{
-            tpu1 :tooth1,
-            tpu2 :tooth2,
-            tpu3 :tooth3,
-            tpu4 :tooth4,
-            tpu5 :tooth5,
-            tpu6 :tooth6,
-            tpu7 :tooth7,
-            tpu8 :tooth8,
-            tpu9 :tooth9,
-            tpu10 :tooth10,
-            tpu11 :tooth11,
-            tpu12 :tooth12,
-            tpu13 :tooth13,
-            tpu14 :tooth14,
-            tpu15 :tooth15,
-            tpu16 :tooth16,
-            tpd32:tooth32,
-            tpd31:tooth31,
-            tpd30:tooth30,
-            tpd29:tooth29,
-            tpd28:tooth28,
-            tpd27:tooth27,
-            tpd26:tooth26,
-            tpd25:tooth25,
-            tpd24:tooth24,
-            tpd23:tooth23,
-            tpd22:tooth22,
-            tpd21:tooth21,
-            tpd20:tooth20,
-            tpd19:tooth19,
-            tpd18:tooth18,
-            tpd17:tooth17,
+          buttons:[
+            {image:tooth1,title:"tooth 1"},
+            {image:tooth2,title:"tooth 2"},
+            {image:tooth3,title:"tooth 3"},
+            {image:tooth4,title:"tooth 4"},
+            {image:tooth5,title:"tooth 5"},
+            {image:tooth6,title:"tooth 6"},
+            {image:tooth7,title:"tooth 7"},
+            {image:tooth8,title:"tooth 8"},
+            {image:tooth9,title:"tooth 9"},
+            {image:tooth10,title:"tooth 10"},
+            {image:tooth11,title:"tooth 11"},
+            {image:tooth12,title:"tooth 12"},
+            {image:tooth13,title:"tooth 13"},
+            {image:tooth14,title:"tooth 14"},
+            {image:tooth15,title:"tooth 15"},
+            {image:tooth16,title:"tooth 16"},
+            {image:tooth17,title:"tooth 32"},
+            {image:tooth18,title:"tooth 31"},
+            {image:tooth19,title:"tooth 30"},
+            {image:tooth20,title:"tooth 29"},
+            {image:tooth21,title:"tooth 28"},
+            {image:tooth22,title:"tooth 27"},
+            {image:tooth23,title:"tooth 26"},
+            {image:tooth24,title:"tooth 25"},
+            {image:tooth25,title:"tooth 24"},
+            {image:tooth26,title:"tooth 23"},
+            {image:tooth27,title:"tooth 22"},
+            {image:tooth28,title:"tooth 21"},
+            {image:tooth29,title:"tooth 20"},
+            {image:tooth30,title:"tooth 19"},
+            {image:tooth31,title:"tooth 18"},
+            {image:tooth32,title:"tooth 17"},
+          ],
+          ids:[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31],
+          preview:placeholder,
+          avatar:sample,
+          logo:dummy1
         }
     },
     methods:{
@@ -151,11 +155,12 @@ export default
 
   .flex-parent-element {
   display: flex;
+  margin: 10px;
   }
 
   .flex-child-element {
   flex: 1;
-  border: 2px solid black;
+  box-shadow:2px 2px 2px 2px rgb(24, 24, 24);
   margin: 10px;
   }
 
@@ -175,24 +180,15 @@ export default
   transform: scale(1.25) perspective(1px);
   }
 
+  .patient_card{
+    background-color: whitesmoke;
+    max-height: 290px;
+  }
   div .preview-pane{
     display: flex;
     justify-content: center;
     align-items: center;
-  }
-
-  div .UpperJaw{
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin: 40px;
-  }
-
-  div .LowerJaw{
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin: 40px;
+    background-color: whitesmoke;
   }
 
   body{
@@ -200,13 +196,42 @@ export default
     background-color:slategray;
   }
 
-  title{
+  .appBar{
     display: flex;
-    justify-content: center;
+    justify-content: left;
     align-items: center;
     background-color: rgb(46, 50, 71);
-    color: aliceblue;
-    font: 1.6rem/1.25 "Helvetica Neue", Helvetica, Arial, sans-serif;
+    color: whitesmoke;
+    font: 1.2rem/1 "Helvetica Neue", Helvetica, Arial, sans-serif;
+  }
+  p{
+    display: flex;
+    justify-content: center;
+    font-size: xx-small;
+    margin: 4%;
+    color: black;
+    font: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  }
+
+  .cardbar{
+    font: 1.1rem/1.3 "Helvetica Neue", Helvetica, Arial, sans-serif;
+    margin:0%;
+    background-color: rgb(46, 50, 71);
+    color:whitesmoke;
   }
   
+  .Avatar{
+    margin-top:5%;
+  }
+  .logo{
+    max-width: 50px;
+    max-height: 50px;
+    padding: 0.5%;
+  }
+  .preview{
+    max-height: 253px;
+  }
+  .chart{
+    max-height: 253px;
+  }
 </style>
