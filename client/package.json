@@ -10,6 +10,7 @@
   "dependencies": {
     "core-js": "^3.8.3",
     "cropperjs": "^1.5.12",
+    "fabric": "^5.2.4",
     "image-filter-contrast": "^1.0.0",
     "imagvue": "^0.0.5",
     "photo-editor": "^0.2.1",

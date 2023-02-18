@@ -1,8 +1,8 @@
 <template>
     <div>
         <button v-for="buttonDetail in buttonDetails" :key="buttonDetail.id" @click="buttonDetail.method"
-            class="icnBtn">
-            <img :src="buttonDetail.img" :title="buttonDetail.title" class="icn-img" />
+            class="btn btn-light">
+            <img :src="buttonDetail.img" :title="buttonDetail.title" class="btn-img" />
         </button>
     </div>
 </template>
@@ -19,11 +19,11 @@ export default {
     data() {
         return {
             buttonDetails: [
-                { id: 0, img: scanner, title: "Scan your Image", method: this.clickScan },
-                { id: 1, img: trash, title: "Del your Image", method: this.clickDelScan },
+                { id: 0, img: scanner, title: "Scan", method: this.clickScan },
+                { id: 1, img: trash, title: "Delete Image", method: this.clickDelScan },
                 { id: 2, img: reset, title: "Reset Image", method: this.clickReset },
-                { id: 3, img: undo, title: "Undo a Change", method: this.clickUndo },
-                { id: 4, img: redo, title: "Redo a Change", method: this.clickRedo },
+                { id: 3, img: undo, title: "Undo", method: this.clickUndo },
+                { id: 4, img: redo, title: "Redo", method: this.clickRedo },
             ],
         }
     },
@@ -48,12 +48,14 @@ export default {
 </script>
 
 <style scoped>
-.icn-img {
+.btn-img {
     width: 22px;
 }
 
-.icnBtn {
+.btn {
     margin: 3px;
-    padding: 8px
+    padding: 8px;
+    cursor: pointer;
+    border: 1.5px solid rgb(148, 147, 147); 
 }
 </style>

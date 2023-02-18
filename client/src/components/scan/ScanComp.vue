@@ -1,40 +1,44 @@
 <template>
-    <div>
-        <h1>SCANNING</h1>
-
-        <AddImg @scan="scanImg" @del="delScanImg" @reset="resetImg" @undo="undoChange" @redo="redoChange" />
-
-        <div id="scanDiv">
-            <img id="scanImg" ref="scanImg" />
+    <div class="d-flex flex-column justify-content-center align-items-center">
+        <h1 >SCANNING</h1>
+        <AddImg @scan="scanImg" 
+                @del="delScanImg" 
+                @reset="resetImg" 
+                @undo="undoChange" 
+                @redo="redoChange" />
+        
+        
+        <div id="fabric-canvas-wrapper">
+            <canvas ref="canvas" id="drawingCanvas" class="can"></canvas>
         </div>
-        <EditImg @crop="cropImg" @setFilters="adjustFilters" @rotateLeft="rotateImgLeft"
-            @rotateRight="rotateImgRight" @replace="replaceImg" @cancel="cancelCrop" />
-        <div class="range_panel">
-            <span>
-                <label>Contrast</label>
-                <input id="id1" class="fit-val" 
-                    type="range" min="0" max="300"
-                    value="100" />
-                <div class="val" id="contrast">100%</div>
-                </span>
-                <span>
-                    <label>Brightness</label>   
-                    <input id="id2" class="fit-val" 
-                    type="range" min="0" max="300"
-                    value="100" />
-                <div class="val" id="bright">100%</div>
-            </span>
-        </div>
-        <button @click="mount" class="icnBtn">
-            <img :src="dsf" title="Done" class="icn-img">
-        </button>
+
+        <EditImg @crop="cropImg"
+                @reset_filter = "resetFilter" 
+                @rotate="rotateCanvas"
+                @draw = "draw"
+                @apply_change_crop="apply_change_crop"
+                @apply_change_transform = "apply_change_transform"
+                @pushFilter = "pushFilter"
+                @adjustBrightness = "adjustBrightness"
+                @adjustContrast = "adjustContrast" 
+                @apply_change_filter = "apply_change_filter"
+                @apply_change_draw = "apply_change_draw"
+                @cancelCrop="cancelCrop" 
+                @cancelTransform = "cancelTransform"
+                @cancelDraw = "cancelDraw"
+                @clearDraw = "clearDraw"
+                @moveMode = "moveMode"
+                @zoom = "zoom" />
     </div>
 </template>
 
 <script>
 import AddImg from './AddImg.vue'
 import EditImg from './EditImg.vue'
-import Cropper from "cropperjs"
+import replace from "../../assets/true.png"
+import cancel from "../../assets/forbidden.png"
+
+import fabric from 'fabric';
 
 
 export default {
@@ -44,160 +48,384 @@ export default {
     },
     data() {
         return {
+            canvas:null,
+            canvasBGColor:"#E1E3E9",
+            canvasWidth:500,
+            canvasHeight:500,
+            currentImage:null,
+            img:new Image(), 
+            replaceBtnIcn : replace,
+            cancelBtnIcn : cancel,
+            rotation:0,
+            temp_rotation:0,
             connection: null,
-            file: null,
-            reader: null,
-            cropper: {},
-            imgElement: null,
-            resetURL: [],
-            i: -1,
-            imgBrightness: 100,
-            imgContrast: 100,
+            selectionRect:null,
+            actionStack: [],
+            currentActionIndex: -1,
+            file: null,    // connection
+            reader: null,  // connection
         }
     },
     methods: {
-        // add methods
         scanImg() {
             this.connection.send("1100")
-            // this.$emit('scaned');
         },
         delScanImg() {
-            this.imgElement.src = ""
-            this.resetURL = []
-            this.resetFilter()
-            this.i = -1
+            this.canvas.dispose();
+            this.initializeFabricCanvas();
+            this.actionStack = [];
+            this.currentActionIndex =-1
         },
         resetImg() {
-            if (this.resetURL[0]) {
-                this.imgElement.src = this.resetURL[0]
-                this.resetFilter()
-                this.resetURL = []
-                this.i = -1
-            }
+            this.currentActionIndex = 0;
+            this.actionStack.splice(this.currentActionIndex + 1);
+            this.canvas.loadFromJSON(this.actionStack[0],()=>{
+                this.canvas.getObjects().forEach((obj)=>{
+                    if(obj.type==='image'){
+                        this.currentImage = obj;
+                    }
+                });
+            });
         },
         undoChange() {
-            if (this.i > 0) {
-                this.i--
-                this.imgElement.src = this.resetURL[this.i]
+            if (this.currentActionIndex > 0) {
+                this.currentActionIndex--;
+                this.canvas.loadFromJSON(this.actionStack[this.currentActionIndex],()=>{
+                    this.canvas.getObjects().forEach((obj)=>{
+                        if(obj.type==='image'){
+                            this.currentImage = obj;
+                        }
+                    });
+                });
             }
         },
         redoChange() {
-            if (this.i < this.resetURL.length - 1) {
-                this.i++
-                this.imgElement.src = this.resetURL[this.i]
+            if (this.currentActionIndex < this.actionStack.length - 1) {
+                this.currentActionIndex++;
+                this.canvas.loadFromJSON(this.actionStack[this.currentActionIndex],()=>{
+                    this.canvas.getObjects().forEach((obj)=>{
+                        if(obj.type==='image'){
+                            this.currentImage = obj;
+                        }
+                    });
+                });
             }
         },
-    
-        // edit methods
-        cropImg() {
-            this.cropper = new Cropper(this.imgElement, {
-                viewMode: 1,
-                scaleable: false,
-                background: false,
-            })
+        // -------------------------------------------------------------------------------------------------
+        
+        cropImg() {   
+            this.canvas.setViewportTransform([1,0,0,1,0,0]);
+            this.canvas.setZoom(1);
+            this.canvas.getObjects().forEach((obj) => {
+                obj.selectable = false;
+            });
+            this.addSelectionRect();
+            this.canvas.setActiveObject(this.selectionRect);
+            this.canvas.renderAll();   
         },
-        adjustFilters(brightness, contrast) {
-            this.imgBrightness = brightness
-            this.imgContrast = contrast
-        },
-        rotateImgLeft() {
-            this.cropper.rotate(-90)
-        },
-        rotateImgRight() {
-            this.cropper.rotate(90)
-        },
-        replaceImg() {
-            if (this.i == -1) {
-                this.resetURL.push(this.imgElement.src)
-                this.i++
-            }
-            this.imgElement.src = this.cropper.getCroppedCanvas({
-                height: 400
-            }).toDataURL()
-            this.imgElement.cropper.destroy()
+        addSelectionRect() {
+            this.selectionRect = new fabric.fabric.Rect({
+                fill: "rgba(0,0,0,0.3)",
+                originX: "left",
+                originY: "top",
+                stroke: "black",
+                opacity: 1,
+                top: this.currentImage.top,
+                left: this.currentImage.left,
+                width: this.currentImage.width,
+                height: this.currentImage.height,
+                transparentCorners: false,
+                cornerColor: "white",
+                cornerStrokeColor: "black",
+                borderColor: "black",
+                cornerSize: 12,
+                padding: 0,
+                cornerStyle: "circle",
+                borderDashArray: [5, 5],
+                borderScaleFactor: 1.3,
+            });
+            this.selectionRect.setControlVisible('mtr', false);
+            this.selectionRect.scaleToHeight(this.currentImage.getScaledHeight());
+            this.selectionRect.scaleToWidth(this.currentImage.getScaledWidth());
+            // this.canvas.centerObject(this.selectionRect);
+            this.selectionRect.visible = true;
+            this.canvas.add(this.selectionRect);
+        },  
+        apply_change_crop() {
+            this.rotation =0;
+            this.temp_rotation=0;
+            let rect = new fabric.fabric.Rect({
+                left: this.selectionRect.left,
+                top: this.selectionRect.top,
+                width: this.selectionRect.getScaledWidth(),
+                height: this.selectionRect.getScaledHeight(),
+                absolutePositioned: true
+            });
+            this.currentImage.clipPath = rect;
+            this.canvas.remove(this.selectionRect);
 
-            if (this.i < this.resetURL.length - 1) {
-                this.resetURL = this.resetURL.slice(0, this.i + 1)
+            var cropped = new Image();
+            cropped.src = this.canvas.toDataURL({
+                multiplier:4,   // for maintaing Quality
+                left: rect.left,
+                top: rect.top,
+                width: rect.width,
+                height: rect.height,
+            });
+            this.canvas.clear();
+
+            cropped.onload = () => {
+                let image = new fabric.fabric.Image(cropped);
+                image.left = rect.left;
+                image.top = rect.top;
+                image.scaleToWidth(image.width/4); // for viewing scale down again
+                image.scaleToHeight(image.height/4);
+                image.setCoords();
+                image.setControlsVisibility({ mtr: false })
+                this.currentImage = image;
+                this.canvas.add(image);
+                this.canvas.backgroundColor = "#E1E3E9";
+                this.enableObjectScaling();
+                this.pushFilter();
+                this.canvas.renderAll();
+                this.take_data();
             }
-            this.resetURL.push(this.imgElement.src),
-                this.i++
         },
         cancelCrop() {
-            this.imgElement.cropper.destroy()
+            this.canvas.loadFromJSON(this.actionStack[this.currentActionIndex]);
         },
-        setFilters(){
-            this.imgContrast = document.getElementById("id1").value
-            this.imgBrightness = document.getElementById("id2").value
-            this.updateFilters()
+
+        // ----------------------------------------------------------------------------
+
+        rotateCanvas(degree){
+            this.temp_rotation+=degree;
+            let canvasCenter = new fabric.fabric.Point(this.canvas.getWidth() / 2, this.canvas.getHeight() / 2) // center of canvas
+            let radians = fabric.fabric.util.degreesToRadians(degree)
+            this.canvas.getObjects().forEach((obj) => {
+                let objectOrigin = new fabric.fabric.Point(obj.left, obj.top)
+                let new_loc = fabric.fabric.util.rotatePoint(objectOrigin, canvasCenter, radians)
+                obj.top = new_loc.y
+                obj.left = new_loc.x
+                obj.angle += degree
+                obj.setCoords()
+            });
+            this.canvas.renderAll()
         },
-        updateFilters(){
-            document.getElementById("scanImg").style.filter = "brightness(" + this.imgBrightness + "%) contrast(" + this.imgContrast +"%)"
-            document.getElementById("bright").innerText = this.imgBrightness + "%"
-            document.getElementById("contrast").innerText = this.imgContrast + "%"
+        flipCanvas(axis){   
+            if(axis==='X') this.currentImage.flipX = !this.currentImage.flipX;
+            else if(axis==="Y") this.currentImage.flipY = !this.currentImage.flipY;
+            this.canvas.renderAll()
+        },
+        apply_change_transform(){
+            this.rotation = this.temp_rotation;
+            this.take_data();
+        },
+        cancelTransform(){
+            this.temp_rotation =this.rotation;
+            this.canvas.loadFromJSON(this.actionStack[this.currentActionIndex]);
+        },
+
+        // ------------------------------------------------------------------------------
+
+        adjustBrightness(brightness){
+            // console.log(this.currentImage.getOriginalSize())
+            this.currentImage.filters[0].brightness = brightness / 200;
+            this.currentImage.applyFilters();
+            this.canvas.renderAll();
+        },
+        adjustContrast(contrast){
+            this.currentImage.filters[1].contrast = contrast / 200;
+            this.currentImage.applyFilters();
+            this.canvas.renderAll();
+        },
+        pushFilter(){
+            this.currentImage.filters.push(new fabric.fabric.Image.filters.Brightness({
+                brightness: 0
+            }))
+            this.currentImage.filters.push(new fabric.fabric.Image.filters.Contrast({
+                contrast: 0
+            }));
+            this.currentImage.applyFilters()
+            this.canvas.renderAll();
         },
         resetFilter(){
-            document.getElementById("id1").value = 100
-            document.getElementById("id2").value = 100
-            this.imgBrightness = 100
-            this.imgContrast = 100
-            this.updateFilters()
-        }
-    },
-    mount(){
-        document.getElementById("scanImg").css("-webkit-filter", "contrast(" + document.querySelector("#id6").value + "%)")
-    },
-    mounted() {
-        this.imgElement = document.getElementById("scanImg")
-        this.connection = new WebSocket("ws://localhost:8181/")
-        this.connection.onmessage = (e) => {
-            if (e.data instanceof Blob) {
-                this.file = e.data
-                this.file.name = "File"
-                this.reader = new FileReader()
-                this.reader.readAsDataURL(this.file)
-                this.reader.onload = function (e) {
-                    document.getElementById("scanImg").src = e.target.result
+            this.adjustBrightness(0)
+            this.adjustContrast(0)
+        },
+        apply_change_filter(){
+            let left = this.currentImage.left;
+            let top = this.currentImage.top;
+            fabric.fabric.Image.fromURL(this.currentImage.getSrc(true),(image)=>{
+                // image.left = 0;
+                // image.left = this.currentImage.top;
+                image.scaleToHeight(this.currentImage.getScaledHeight());
+                image.setCoords();
+                image.setControlsVisibility({ mtr: false })
+                this.currentImage = image;
+                this.canvas.clear();
+                this.canvas.backgroundColor = this.canvasBGColor;
+                this.canvas.add(image);
+                this.pushFilter();
+                this.enableObjectScaling();
+                this.rotateCanvas(this.rotation);
+            })
+            setTimeout(() => {
+                this.currentImage.top = top;
+                this.currentImage.left = left;
+                this.enableObjectScaling();
+                this.take_data();
+            }, 1); 
+
+        },
+
+        //------------------------------------------------------
+        
+        draw(data){
+            if(!this.canvas.isDrawingMode){
+                this.canvas.isDrawingMode = true;
+            }
+            if(this.canvas.freeDrawingBrush.width!==data.brushSize){
+                this.canvas.freeDrawingBrush.width = parseInt(data.brushSize, 10);
+            }
+            this.canvas.freeDrawingBrush.color = data.brushColor;
+        },
+        apply_change_draw(){
+            this.canvas.isDrawingMode = false;
+            this.rotation =0;
+            this.temp_rotation=0;
+            let rect = new fabric.fabric.Rect({
+                left: this.currentImage.left,
+                top: this.currentImage.top,
+                width: this.currentImage.getScaledWidth(),
+                height: this.currentImage.getScaledHeight(),
+                absolutePositioned: true
+            });
+            this.currentImage.clipPath = rect;
+            var cropped = new Image();
+            cropped.src = this.canvas.toDataURL({
+                multiplier:4,   // for maintaing Quality
+                left: rect.left,
+                top: rect.top,
+                width: rect.width,
+                height: rect.height,
+            });
+            this.canvas.clear();
+            cropped.onload = () => {
+                let image = new fabric.fabric.Image(cropped);
+                image.left = rect.left;
+                image.top = rect.top;
+                image.scaleToWidth(image.width/4); // for viewing scale down again
+                image.scaleToHeight(image.height/4);
+                image.setCoords();
+                image.setControlsVisibility({ mtr: false })
+                this.currentImage = image;
+                this.canvas.add(image);
+                this.canvas.backgroundColor = "#E1E3E9";
+                this.enableObjectScaling();
+                this.pushFilter();
+                this.canvas.renderAll();
+                this.take_data();
+            }
+        },
+        cancelDraw(){
+            this.canvas.loadFromJSON(this.actionStack[this.currentActionIndex]);
+            this.canvas.isDrawingMode = false;
+        },
+        moveMode(){
+            this.canvas.isDrawingMode = false;
+        },
+        clearDraw(){
+            this.canvas.loadFromJSON(this.actionStack[this.currentActionIndex]);
+        },
+
+        // ------------------------------------------------------
+
+        zoom(zoomLevel){
+            this.canvas.zoomToPoint({ x: this.canvas.width / 2, y: this.canvas.height / 2 }, zoomLevel/100);
+            this.canvas.requestRenderAll();
+        },
+        // ----------------- Other Methods --------------------
+
+        take_data(){
+            this.actionStack.splice(this.currentActionIndex + 1);
+            this.actionStack.push(this.canvas.toJSON());
+            this.currentActionIndex++;
+        },
+        imageLoadToCanvas(){
+            fabric.fabric.Image.fromURL(this.img.src, (image) => {
+                if(image.width>image.height){
+                    image.scaleToWidth(this.canvas.width)
                 }
+                else{
+                    image.scaleToHeight(this.canvas.height)
+                }
+                image.setCoords();
+              
+                image.setControlsVisibility({ mtr: false })
+                this.currentImage = image;
+                this.canvas.add(image);
+                this.canvas.centerObject(image);
+                this.pushFilter();
+                this.enableObjectScaling();
+                this.take_data();
+            });
+        },
+        enableObjectScaling(){
+            let objects = this.canvas.getObjects();
+            var selection = new fabric.fabric.ActiveSelection(objects, {
+                canvas: this.canvas,
+            });
+            this.canvas.setActiveObject(selection);   
+            this.canvas.discardActiveObject();        
+            this.canvas.requestRenderAll();
+        },
+        initializeFabricCanvas(){
+            this.canvas = new fabric.fabric.Canvas(this.$refs.canvas);
+            this.canvas.backgroundColor = this.canvasBGColor;
+            this.canvas.preserveObjectStacking = true;
+            this.canvas.setWidth(this.canvasWidth);
+            this.canvas.setHeight(this.canvasHeight);
+        },
+        async make_connection(){
+            this.connection = new WebSocket("ws://localhost:8181/")
+            this.connection.onmessage = (e) => {
+                if (e.data instanceof Blob) {
+                    this.file = e.data
+                    this.file.name = "File"
+                    this.reader = new FileReader()
+                    this.reader.readAsDataURL(this.file)
+                    this.reader.onload = async (e)=> {
+                        let v = new Promise((resolve)=>{
+                            resolve(e.target.result)
+                        })
+                        v.then((value)=>{
+                            this.img.src = value
+                            this.imageLoadToCanvas();
+                        })
+                    }
+                   
+                }
+            }
+            this.connection.onopen = function () {
+                console.log("successfully connected")
             }
         }
 
-        document.getElementById("id1").addEventListener("input",this.setFilters)
-        document.getElementById("id2").addEventListener("input",this.setFilters)
-        
-        this.connection.onopen = function (e) {
-            console.log(e)
-            console.log("successfully connected")
-        }
-
-       
+    },
+    mounted() {
+        this.initializeFabricCanvas();
+        this.make_connection();
     },
 }
 </script>
 
 <style scoped>
-.icn-img {
-    width: 22px;
+
+.can {
+  border: 1px solid black;
 }
 
-.icnBtn {
-    margin: 3px;
-    padding: 8px;
-}
 
-#scanImg {
-    height: 100%;
-}
 
-#scanDiv {
-    height: 60vh;
-    margin-right: 10%;
-    margin-left: 10%;
-    border: 1px solid;
-}
-
-span {
-    display: block;
-    margin: 10px;
-}
 
 </style>
