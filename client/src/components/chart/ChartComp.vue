@@ -1,0 +1,237 @@
+<template class="app">
+
+    <div class="appBar">
+      <img class="logo" :src="logo"/>
+      Dental Appointment
+    </div>
+
+    <div class="flex-parent-element">
+      <div class="flex-child-element patient_card">
+        <p class="cardbar">Patient Info</p>
+        <img class ="Avatar" :src="avatar" alt="Patient Avatar"/>
+        <p>Patient Id :<input type="number" name="P_Id" :id="ids[0]"></p>
+        <p>Name :<input type="text" name="Name" :id="ids[0]"></p>
+        <p>Email:<input type="string" name="Email" :id="ids[0]"></p>
+        <p>Phone:<input type="number" name="Phone" :id="ids[0]"></p>
+      </div>
+
+      <div class="flex-child-element chart">
+        <div class="d-flex flex-row justify-content-between">
+          <div class="UpperJaw" v-for="id in ids.slice(0,16)" :key="id">
+            <button type="submit" @click="clickTooth"><img :src="buttons[id].image" :title="buttons[id].title"/></button>
+          </div>
+        </div>
+          <br/>
+        <div class="d-flex flex-row justify-content-between">
+          <div class="LowerJaw" v-for="id in ids.slice(16,32)" :key="id">
+            <button type="submit" @click="clickTooth"><img :src="buttons[id].image" :title="buttons[id].title"/></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex-child-element preview-pane">
+        <img class="preview" :src="preview" alt="preview goes here"/>
+      </div>
+
+    </div>
+
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+
+</template>
+
+<script>
+
+import sample from "@/assets/avatar.png";
+
+import dummy1 from "@/assets/logo.jpg";
+
+import placeholder from "@/assets/Sample.jpg"
+
+import tooth1 from "@/assets/Teeth_set/1.png";
+import tooth2 from "@/assets/Teeth_set/2.png";
+import tooth3 from "@/assets/Teeth_set/3.png";
+import tooth4 from "@/assets/Teeth_set/4.png";
+import tooth5 from "@/assets/Teeth_set/5.png";
+import tooth6 from "@/assets/Teeth_set/6.png";
+import tooth7 from "@/assets/Teeth_set/7.png";
+import tooth8 from "@/assets/Teeth_set/8.png";
+import tooth9 from "@/assets/Teeth_set/9.png";
+import tooth10 from "@/assets/Teeth_set/10.png";
+import tooth11 from "@/assets/Teeth_set/11.png";
+import tooth12 from "@/assets/Teeth_set/12.png";
+import tooth13 from "@/assets/Teeth_set/13.png";
+import tooth14 from "@/assets/Teeth_set/14.png";
+import tooth15 from "@/assets/Teeth_set/15.png";
+import tooth16 from "@/assets/Teeth_set/16.png";
+import tooth17 from "@/assets/Teeth_set/17.png";
+import tooth18 from "@/assets/Teeth_set/18.png";
+import tooth19 from "@/assets/Teeth_set/19.png";
+import tooth20 from "@/assets/Teeth_set/20.png";
+import tooth21 from "@/assets/Teeth_set/21.png";
+import tooth22 from "@/assets/Teeth_set/22.png";
+import tooth23 from "@/assets/Teeth_set/23.png";
+import tooth24 from "@/assets/Teeth_set/24.png";
+import tooth25 from "@/assets/Teeth_set/25.png";
+import tooth26 from "@/assets/Teeth_set/26.png";
+import tooth27 from "@/assets/Teeth_set/27.png";
+import tooth28 from "@/assets/Teeth_set/28.png";
+import tooth29 from "@/assets/Teeth_set/29.png";
+import tooth30 from "@/assets/Teeth_set/30.png";
+import tooth31 from "@/assets/Teeth_set/31.png";
+import tooth32 from "@/assets/Teeth_set/32.png";
+
+
+export default
+{
+    name:'ChartComp',
+    data(){
+        return{
+          buttons:[
+            {image:tooth1,title:"tooth 1"},
+            {image:tooth2,title:"tooth 2"},
+            {image:tooth3,title:"tooth 3"},
+            {image:tooth4,title:"tooth 4"},
+            {image:tooth5,title:"tooth 5"},
+            {image:tooth6,title:"tooth 6"},
+            {image:tooth7,title:"tooth 7"},
+            {image:tooth8,title:"tooth 8"},
+            {image:tooth9,title:"tooth 9"},
+            {image:tooth10,title:"tooth 10"},
+            {image:tooth11,title:"tooth 11"},
+            {image:tooth12,title:"tooth 12"},
+            {image:tooth13,title:"tooth 13"},
+            {image:tooth14,title:"tooth 14"},
+            {image:tooth15,title:"tooth 15"},
+            {image:tooth16,title:"tooth 16"},
+            {image:tooth17,title:"tooth 32"},
+            {image:tooth18,title:"tooth 31"},
+            {image:tooth19,title:"tooth 30"},
+            {image:tooth20,title:"tooth 29"},
+            {image:tooth21,title:"tooth 28"},
+            {image:tooth22,title:"tooth 27"},
+            {image:tooth23,title:"tooth 26"},
+            {image:tooth24,title:"tooth 25"},
+            {image:tooth25,title:"tooth 24"},
+            {image:tooth26,title:"tooth 23"},
+            {image:tooth27,title:"tooth 22"},
+            {image:tooth28,title:"tooth 21"},
+            {image:tooth29,title:"tooth 20"},
+            {image:tooth30,title:"tooth 19"},
+            {image:tooth31,title:"tooth 18"},
+            {image:tooth32,title:"tooth 17"},
+          ],
+          ids:[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31],
+          preview:placeholder,
+          avatar:sample,
+          logo:dummy1
+        }
+    },
+    methods:{
+        clickTooth(){
+            this.$emit('scan')
+        }
+    }
+}
+</script>
+
+<style scoped>
+  *{
+    margin:0%;
+    padding:0%;
+  }
+
+  .flex-parent-element {
+  display: flex;
+  margin: 10px;
+  }
+
+  .flex-child-element {
+  flex: 1;
+  box-shadow:2px 2px 2px 2px rgb(24, 24, 24);
+  margin: 10px;
+  }
+
+  button{
+    cursor: pointer;
+    border:none;
+    appearance: none;
+    background-color:rgb(33, 36, 51);
+  }
+
+  button {
+    transition: all 1s ease;
+    transform: scale(1);
+  }
+
+  button:hover {
+  transform: scale(1.25) perspective(1px);
+  }
+
+  .patient_card{
+    background-color: whitesmoke;
+    max-height: 290px;
+  }
+  div .preview-pane{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: whitesmoke;
+  }
+
+  body{
+    color: whitesmoke;
+    background-color:slategray;
+  }
+
+  .appBar{
+    display: flex;
+    justify-content: left;
+    align-items: center;
+    background-color: rgb(46, 50, 71);
+    color: whitesmoke;
+    font: 1.2rem/1 "Helvetica Neue", Helvetica, Arial, sans-serif;
+  }
+  p{
+    display: flex;
+    justify-content: center;
+    font-size: xx-small;
+    margin: 4%;
+    color: black;
+    font: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  }
+
+  .cardbar{
+    font: 1.1rem/1.3 "Helvetica Neue", Helvetica, Arial, sans-serif;
+    margin:0%;
+    background-color: rgb(46, 50, 71);
+    color:whitesmoke;
+  }
+  
+  .Avatar{
+    margin-top:5%;
+  }
+  .logo{
+    max-width: 50px;
+    max-height: 50px;
+    padding: 0.5%;
+  }
+  .preview{
+    max-height: 253px;
+  }
+  .chart{
+    max-height: 253px;
+  }
+</style>
