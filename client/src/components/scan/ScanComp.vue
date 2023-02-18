@@ -26,6 +26,7 @@
                 @cancelCrop="cancelCrop" 
                 @cancelTransform = "cancelTransform"
                 @cancelDraw = "cancelDraw"
+                @clearDraw = "clearDraw"
                 @moveMode = "moveMode"
                 @zoom = "zoom" />
     </div>
@@ -55,6 +56,8 @@ export default {
             img:new Image(), 
             replaceBtnIcn : replace,
             cancelBtnIcn : cancel,
+            rotation:0,
+            temp_rotation:0,
             connection: null,
             selectionRect:null,
             actionStack: [],
@@ -149,6 +152,8 @@ export default {
             this.canvas.add(this.selectionRect);
         },  
         apply_change_crop() {
+            this.rotation =0;
+            this.temp_rotation=0;
             let rect = new fabric.fabric.Rect({
                 left: this.selectionRect.left,
                 top: this.selectionRect.top,
@@ -193,6 +198,7 @@ export default {
         // ----------------------------------------------------------------------------
 
         rotateCanvas(degree){
+            this.temp_rotation+=degree;
             let canvasCenter = new fabric.fabric.Point(this.canvas.getWidth() / 2, this.canvas.getHeight() / 2) // center of canvas
             let radians = fabric.fabric.util.degreesToRadians(degree)
             this.canvas.getObjects().forEach((obj) => {
@@ -215,13 +221,14 @@ export default {
             this.take_data();
         },
         cancelTransform(){
+            this.temp_rotation =this.rotation;
             this.canvas.loadFromJSON(this.actionStack[this.currentActionIndex]);
         },
 
         // ------------------------------------------------------------------------------
 
         adjustBrightness(brightness){
-            console.log(this.currentImage.getOriginalSize())
+            // console.log(this.currentImage.getOriginalSize())
             this.currentImage.filters[0].brightness = brightness / 200;
             this.currentImage.applyFilters();
             this.canvas.renderAll();
@@ -246,21 +253,29 @@ export default {
             this.adjustContrast(0)
         },
         apply_change_filter(){
+            let left = this.currentImage.left;
+            let top = this.currentImage.top;
             fabric.fabric.Image.fromURL(this.currentImage.getSrc(true),(image)=>{
-                image.left = this.currentImage.left;
-                image.top = this.currentImage.top;
+                // image.left = 0;
+                // image.left = this.currentImage.top;
                 image.scaleToHeight(this.currentImage.getScaledHeight());
                 image.setCoords();
                 image.setControlsVisibility({ mtr: false })
                 this.currentImage = image;
-                
                 this.canvas.clear();
                 this.canvas.backgroundColor = this.canvasBGColor;
                 this.canvas.add(image);
                 this.pushFilter();
                 this.enableObjectScaling();
+                this.rotateCanvas(this.rotation);
+            })
+            setTimeout(() => {
+                this.currentImage.top = top;
+                this.currentImage.left = left;
+                this.enableObjectScaling();
                 this.take_data();
-            })     
+            }, 1); 
+
         },
 
         //------------------------------------------------------
@@ -276,6 +291,8 @@ export default {
         },
         apply_change_draw(){
             this.canvas.isDrawingMode = false;
+            this.rotation =0;
+            this.temp_rotation=0;
             let rect = new fabric.fabric.Rect({
                 left: this.currentImage.left,
                 top: this.currentImage.top,
@@ -317,6 +334,9 @@ export default {
         moveMode(){
             this.canvas.isDrawingMode = false;
         },
+        clearDraw(){
+            this.canvas.loadFromJSON(this.actionStack[this.currentActionIndex]);
+        },
 
         // ------------------------------------------------------
 
@@ -340,9 +360,9 @@ export default {
                     image.scaleToHeight(this.canvas.height)
                 }
                 image.setCoords();
+              
                 image.setControlsVisibility({ mtr: false })
                 this.currentImage = image;
-
                 this.canvas.add(image);
                 this.canvas.centerObject(image);
                 this.pushFilter();

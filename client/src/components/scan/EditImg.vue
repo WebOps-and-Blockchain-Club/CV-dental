@@ -31,12 +31,12 @@
                         <span  class="d-flex flex-row">
                             <label class="filter-label">Contrast</label>
                             <input v-model="contrastValue" class="form-range slider" type="range" min="-100" max="100" @input="adjustContrast"/>
-                            <div class="mx-2">{{contrastValue}}</div>
+                            <div class="mx-2 inputValue">{{contrastValue}}</div>
                         </span>
                         <span class="d-flex flex-row">
                             <label class="filter-label">Brightness</label>   
                             <input v-model="brightnessValue" class="form-range slider" type="range" min="-100" max="100" @input="adjustBrightness"/>
-                            <div class="mx-2">{{brightnessValue}}</div>
+                            <div class="mx-2 inputValue">{{brightnessValue}}</div>
                         </span>
                     </div>
     
@@ -67,10 +67,10 @@
                     <span class="d-flex flex-row">
                         <label class="filter-label">Brush Size</label>   
                         <input v-model="brushSize" id="id2" class="form-range slider" type="range" min="1" max="30" step="1" @input="adjustBrushSize"/>
-                        <div class="mx-2">{{brushSize}}</div>
+                        <div class="mx-2 inputValue">{{brushSize}}</div>
                     </span>  
                     <div>
-                        <button id="clear" class="btn btn-light" >Clear</button>
+                        <button @click="clearDrawing" id="clear" class="btn btn-light" title="Clear Drawing">Clear</button>
                         <button @click="clickApplyDrawing" id="clear" class="btn btn-light" title="Replace Image">
                             <img :src="replaceBtnIcn"  class="btn-img"/>
                         </button>
@@ -85,7 +85,7 @@
             <img :src="minusBtnIcn" class="zoom-icn" @click="zoomOut" title="Zoom Out">
             <input v-model="zoomValue" class="form-range slider" type="range" min="10" max="500" @input="adjustZoom"/>
             <img :src="plusBtnIcn" class="zoom-icn" @click="zoomIn" title="Zoom In">
-            <div class="mx-2">{{zoomValue}}%</div>
+            <div class="mx-2 inputValue">{{zoomValue}}%</div>
             <img :src="fitZoomBtnIcn" class="zoom-icn" @click="fitZoom" title="Fit Zoom">
         </div>
         <!-- <div v-if="showEditBtns" class="buttons">
@@ -128,6 +128,7 @@ export default {
             fitZoomBtnIcn : fitZoom,
             moveBtnIcn : move,
             paintMode:true,
+            rotation : 0,
             showEditBtns: true,
             showTransform: false,
             showCrop: false,
@@ -209,6 +210,9 @@ export default {
             this.showEditBtns = true;
             this.showDraw = false;
             this.$emit('apply_change_draw')
+        },
+        clearDrawing(){
+            this.$emit('clearDraw')
         },
         
         // ----------------Cancel Methods-----------------------
@@ -292,6 +296,9 @@ export default {
 </script>
 
 <style scoped>
+*{
+    overflow-y: hidden;
+}
 .btn-img {
     width: 22px;
     user-select: none;
@@ -299,7 +306,7 @@ export default {
 }
 .zoom-icn{
     margin:5px;
-    width: 16px;
+    width: 25px;
     height: 16px;
     cursor: pointer;
     user-select: none;
@@ -335,7 +342,7 @@ export default {
     bottom: 5px;
     right: 10px;
     padding: 5px;
-    width: 270px;
+    /* width: 100%; */
     text-align: center;
     border-radius: 5px;
     box-shadow: 0px 1px 2px gray;
@@ -346,25 +353,35 @@ export default {
     border-radius: 5px;
     border:1.5px solid rgb(148, 147, 147)
 }
+
+.slider{
+    overflow: hidden;
+}
+
 .slider::-webkit-slider-thumb{
     transition: all 0.15s ease-in-out;
     background: black;  
-    box-shadow: 0px 2px 4px  black ;
+    box-shadow: 0px 0px 5px  black;
 }
 .slider::-webkit-slider-thumb:hover{
     transform: scale(1.2);
 }
 
 .slider::-webkit-slider-runnable-track{
+    margin: 15px;
     height: 0.4rem;
 }
 
 .slider::-moz-range-thumb{
     transition: all 0.15s ease-in-out;
     background: black;
+    box-shadow: 0px 0px 5px  black;
 }
 .slider::-moz-range-thumb:hover{
     transform: scale(1.2);
 }
 
+.inputValue{
+    width: 80px;
+}
 </style>
