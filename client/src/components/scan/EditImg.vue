@@ -207,9 +207,11 @@ export default {
             this.$emit('apply_change_filter')
         },
         clickApplyDrawing(){
+            this.$emit('zoom',100);
             this.showEditBtns = true;
             this.showDraw = false;
             this.$emit('apply_change_draw')
+            this.$emit('zoom',this.zoomValue);
         },
         clearDrawing(){
             this.$emit('clearDraw')
@@ -316,7 +318,8 @@ export default {
     max-height: 50px;
     margin: 3px;
     padding: 8px;
-    border: 1.5px solid rgb(148, 147, 147);
+    border: 1.5px solid black;
+    /* box-shadow: 0 1px 2px black; */
 }
 .filter-label{
     text-align: start;
@@ -342,7 +345,7 @@ export default {
     bottom: 5px;
     right: 10px;
     padding: 5px;
-    /* width: 100%; */
+    background-color: white;
     text-align: center;
     border-radius: 5px;
     box-shadow: 0px 1px 2px gray;

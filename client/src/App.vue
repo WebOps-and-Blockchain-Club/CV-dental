@@ -36,6 +36,7 @@ export default {
     
 <style>
 #app {
+  overflow: hidden !important;
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -45,6 +46,8 @@ export default {
   color: #13232b;
   background-image: url('~@/../src/assets/chartbg.jpg');
   background-size: cover;
+  
+  height: 100vh;
 }
 </style>
     

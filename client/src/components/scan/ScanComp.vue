@@ -1,7 +1,8 @@
 <template>
     <div class="d-flex flex-column justify-content-center align-items-center">
-        <h1 >SCANNING</h1>
-        <AddImg @scan="scanImg" 
+        <h1>SCANNING</h1>
+        <AddImg @scan="scanImg"
+                @upload="uploadImg" 
                 @del="delScanImg" 
                 @reset="resetImg" 
                 @undo="undoChange" 
@@ -56,8 +57,6 @@ export default {
             img:new Image(), 
             replaceBtnIcn : replace,
             cancelBtnIcn : cancel,
-            rotation:0,
-            temp_rotation:0,
             connection: null,
             selectionRect:null,
             actionStack: [],
@@ -69,6 +68,21 @@ export default {
     methods: {
         scanImg() {
             this.connection.send("1100")
+        },
+        uploadImg() {
+            const fileInput = document.createElement("input");
+            fileInput.type = "file";
+            fileInput.accept = "image/*";
+            fileInput.addEventListener("change", (event) => {
+                const selectedFile = event.target.files[0];
+                const reader = new FileReader();
+                reader.onload= () => {
+                    this.img.src = reader.result;
+                    this.imageLoadToCanvas();
+                };
+                reader.readAsDataURL(selectedFile);
+            });
+            fileInput.click();
         },
         delScanImg() {
             this.canvas.dispose();
@@ -147,18 +161,30 @@ export default {
             this.selectionRect.setControlVisible('mtr', false);
             this.selectionRect.scaleToHeight(this.currentImage.getScaledHeight());
             this.selectionRect.scaleToWidth(this.currentImage.getScaledWidth());
-            // this.canvas.centerObject(this.selectionRect);
             this.selectionRect.visible = true;
+            // this.canvas.centerObject(this.selectionRect);
             this.canvas.add(this.selectionRect);
         },  
         apply_change_crop() {
-            this.rotation =0;
-            this.temp_rotation=0;
+            var width = this.selectionRect.getScaledWidth();
+            var height = this.selectionRect.getScaledHeight();
+            if(this.selectionRect.top + this.selectionRect.getScaledHeight() > this.currentImage.top + this.currentImage.getScaledHeight()){
+                height-= (this.selectionRect.top + this.selectionRect.getScaledHeight() - this.currentImage.top - this.currentImage.getScaledHeight());
+            }
+            if(this.selectionRect.left + this.selectionRect.getScaledWidth() > this.currentImage.left + this.currentImage.getScaledWidth()){
+                width-= (this.selectionRect.left + this.selectionRect.getScaledWidth() - this.currentImage.left - this.currentImage.getScaledWidth());
+            }
+            if(this.selectionRect.left<this.currentImage.left){
+                width+= (this.selectionRect.left-this.currentImage.left);
+            }
+            if(this.selectionRect.top<this.currentImage.top){
+                height+=(this.selectionRect.top-this.currentImage.top);
+            }
             let rect = new fabric.fabric.Rect({
-                left: this.selectionRect.left,
-                top: this.selectionRect.top,
-                width: this.selectionRect.getScaledWidth(),
-                height: this.selectionRect.getScaledHeight(),
+                left: Math.max(this.selectionRect.left,this.currentImage.left),
+                top: Math.max(this.selectionRect.top,this.currentImage.top),
+                width: width,
+                height: height,
                 absolutePositioned: true
             });
             this.currentImage.clipPath = rect;
@@ -198,7 +224,6 @@ export default {
         // ----------------------------------------------------------------------------
 
         rotateCanvas(degree){
-            this.temp_rotation+=degree;
             let canvasCenter = new fabric.fabric.Point(this.canvas.getWidth() / 2, this.canvas.getHeight() / 2) // center of canvas
             let radians = fabric.fabric.util.degreesToRadians(degree)
             this.canvas.getObjects().forEach((obj) => {
@@ -207,7 +232,27 @@ export default {
                 obj.top = new_loc.y
                 obj.left = new_loc.x
                 obj.angle += degree
-                obj.setCoords()
+                console.log(obj.aCoords);
+                // obj.setCoords();
+                fabric.fabric.Image.fromURL(obj.toDataURL({multiplier:4}),(image)=>{
+                    if(obj.angle===90){
+                        image.top = obj.aCoords.bl.y;
+                        image.left = obj.aCoords.bl.x;
+                    }
+                    else if(obj.angle===-90){
+                        image.top = obj.aCoords.tr.y;
+                        image.left = obj.aCoords.tr.x;
+                    }
+                    image.scaleToWidth(this.currentImage.getScaledHeight());
+                    image.setCoords();
+                    image.setControlsVisibility({ mtr: false })
+                    this.currentImage = image;
+                    this.canvas.clear();
+                    this.canvas.backgroundColor = this.canvasBGColor;
+                    this.canvas.add(image);
+                    this.pushFilter();
+                    this.enableObjectScaling();
+                })
             });
             this.canvas.renderAll()
         },
@@ -216,19 +261,16 @@ export default {
             else if(axis==="Y") this.currentImage.flipY = !this.currentImage.flipY;
             this.canvas.renderAll()
         },
-        apply_change_transform(){
-            this.rotation = this.temp_rotation;
+        apply_change_transform(){ 
             this.take_data();
         },
         cancelTransform(){
-            this.temp_rotation =this.rotation;
             this.canvas.loadFromJSON(this.actionStack[this.currentActionIndex]);
         },
 
         // ------------------------------------------------------------------------------
 
         adjustBrightness(brightness){
-            // console.log(this.currentImage.getOriginalSize())
             this.currentImage.filters[0].brightness = brightness / 200;
             this.currentImage.applyFilters();
             this.canvas.renderAll();
@@ -253,11 +295,9 @@ export default {
             this.adjustContrast(0)
         },
         apply_change_filter(){
-            let left = this.currentImage.left;
-            let top = this.currentImage.top;
             fabric.fabric.Image.fromURL(this.currentImage.getSrc(true),(image)=>{
-                // image.left = 0;
-                // image.left = this.currentImage.top;
+                image.left = this.currentImage.left;
+                image.top = this.currentImage.top;
                 image.scaleToHeight(this.currentImage.getScaledHeight());
                 image.setCoords();
                 image.setControlsVisibility({ mtr: false })
@@ -267,15 +307,8 @@ export default {
                 this.canvas.add(image);
                 this.pushFilter();
                 this.enableObjectScaling();
-                this.rotateCanvas(this.rotation);
-            })
-            setTimeout(() => {
-                this.currentImage.top = top;
-                this.currentImage.left = left;
-                this.enableObjectScaling();
                 this.take_data();
-            }, 1); 
-
+            })
         },
 
         //------------------------------------------------------
@@ -291,8 +324,6 @@ export default {
         },
         apply_change_draw(){
             this.canvas.isDrawingMode = false;
-            this.rotation =0;
-            this.temp_rotation=0;
             let rect = new fabric.fabric.Rect({
                 left: this.currentImage.left,
                 top: this.currentImage.top,
@@ -309,6 +340,7 @@ export default {
                 width: rect.width,
                 height: rect.height,
             });
+            console.log(cropped.src);
             this.canvas.clear();
             cropped.onload = () => {
                 let image = new fabric.fabric.Image(cropped);
@@ -414,7 +446,11 @@ export default {
     },
     mounted() {
         this.initializeFabricCanvas();
-        this.make_connection();
+        try {
+            this.make_connection();
+        } catch (error) {
+            console.log(error);
+        } 
     },
 }
 </script>
