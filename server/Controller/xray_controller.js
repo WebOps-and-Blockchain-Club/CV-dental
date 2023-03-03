@@ -1,5 +1,5 @@
 const Xray = require("../Model/xray");
-const processFile = require("../utils/upload");
+const processFile = require("../Utils/upload");
 const { format } = require("util");
 const { Storage } = require("@google-cloud/storage");
 const storage = new Storage({ keyFilename: "google-cloud-key.json" });

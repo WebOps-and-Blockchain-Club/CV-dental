@@ -4,10 +4,10 @@ const dotenv = require("dotenv");
 dotenv.config({ path: "./Config/config.env" });
 const path = require("path");
 
-app.use("/", require("./routes"));
+app.use("/", require("./Routes"));
 app.use(express.static(path.join(__dirname, "../client/public")));
 
-require("./config/mongoConnection");
+require("./Config/mongoConnection");
 
 const port = process.env.PORT;
 
