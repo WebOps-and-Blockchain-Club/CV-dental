@@ -13,6 +13,10 @@ const xraySchema = new mongoose.Schema({
     type: "string",
     required: true,
   },
+  tooth_id: {
+    type: "string",
+    required: true,
+  },
 });
 
 const Xray = mongoose.model("Xray", xraySchema);

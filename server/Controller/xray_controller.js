@@ -3,7 +3,7 @@ const processFile = require("../utils/upload");
 const { format } = require("util");
 const { Storage } = require("@google-cloud/storage");
 const storage = new Storage({ keyFilename: "google-cloud-key.json" });
-const bucket = storage.bucket("cv-dental-xraystore");
+const bucket = storage.bucket("cvteam");
 
 module.exports.addXray = async function (req, res) {
   try {
@@ -39,6 +39,7 @@ module.exports.addXray = async function (req, res) {
       newXray = new Xray({
         title: req.body.title,
         xray_url: publicUrl,
+        tooth_id: req.body.tooth_id,
         patient_id: req.body.patient_id,
       });
       newXray.save();
@@ -59,7 +60,10 @@ module.exports.addXray = async function (req, res) {
 
 module.exports.getAllXrayofPatient = async function (req, res) {
   try {
-    let xray = await Xray.find({ patient_id: req.patient_id });
+    let xray = await Xray.find({
+      patient_id: req.body.patient_id,
+      tooth_id: req.body.tooth_id,
+    });
     return res.status(200).json({
       success: true,
       data: xray,
@@ -76,4 +80,14 @@ module.exports.downloadXray = async function (req, res) {
   } catch (err) {
     console.log("Error in downloading xray: " + err);
   }
+};
+
+module.exports.dummyApi = async (req, res) => {
+  res.status(200).send({
+    urls: [
+      "https://source.unsplash.com/user/c_v_r/1900x800",
+      "https://source.unsplash.com/user/c_v_r/100x100",
+      "https://picsum.photos/id/237/200/300",
+    ],
+  });
 };
