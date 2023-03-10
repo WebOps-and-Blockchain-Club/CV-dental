@@ -7,12 +7,14 @@
 
     <div class="flex-parent-element">
       <div class="flex-child-element patient_card">
-        <p class="cardbar">Patient Info</p>
+        <!--p class="cardbar">Patient Info</p>
         <img class ="Avatar" :src="avatar" alt="Patient Avatar"/>
         <p>Patient Id :<input type="number" name="P_Id" :id="ids[0]"></p>
         <p>Name :<input type="text" name="Name" :id="ids[0]"></p>
         <p>Email:<input type="string" name="Email" :id="ids[0]"></p>
-        <p>Phone:<input type="number" name="Phone" :id="ids[0]"></p>
+        <p>Phone:<input type="number" name="Phone" :id="ids[0]"></p-->
+        <button @click="setscan">scan</button>
+        <button @click="setpreview">preview</button>
       </div>
 
       <div class="flex-child-element chart">
@@ -136,12 +138,33 @@ export default
           ids:[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31],
           preview:placeholder,
           avatar:sample,
-          logo:dummy1
+          logo:dummy1,
+          pview:false,
+          scan:false,
         }
     },
     methods:{
         clickTooth(){
+            //this.$emit('scan')
+            if(this.pview)
+          {
+            let fetchres = fetch("http://localhost:8000/xray/dummyApi")
+            fetchres.then(res =>
+        res.json()).then(d => {
+            this.preview=d.urls[0]
+        })
+          }
+          if(this.scan){
             this.$emit('scan')
+          }
+        },
+        setscan(){
+          this.scan=!this.scan
+          
+        },
+        setpreview(){
+          this.pview=!this.pview
+          
         }
     }
 }
@@ -185,6 +208,8 @@ export default
     max-height: 290px;
   }
   div .preview-pane{
+    max-width: max-content;
+    max-height: max-content;
     display: flex;
     justify-content: center;
     align-items: center;

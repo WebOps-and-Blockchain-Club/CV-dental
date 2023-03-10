@@ -83,6 +83,7 @@ module.exports.downloadXray = async function (req, res) {
 };
 
 module.exports.dummyApi = async (req, res) => {
+  console.log("working")
   res.status(200).send({
     urls: [
       "https://source.unsplash.com/user/c_v_r/1900x800",
