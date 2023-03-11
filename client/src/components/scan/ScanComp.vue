@@ -6,7 +6,9 @@
                 @del="delScanImg" 
                 @reset="resetImg" 
                 @undo="undoChange" 
-                @redo="redoChange" />
+                @redo="redoChange"
+                @done="doneScan"
+                @cancel="cancelScan"/>
         
         
         <div id="fabric-canvas-wrapper">
@@ -63,6 +65,7 @@ export default {
             currentActionIndex: -1,
             file: null,    // connection
             reader: null,  // connection
+            fileName: null
         }
     },
     methods: {
@@ -78,6 +81,8 @@ export default {
                 const reader = new FileReader();
                 reader.onload= () => {
                     this.img.src = reader.result;
+                    this.fileName = selectedFile.name;
+                    console.log(this.fileName);
                     this.imageLoadToCanvas();
                 };
                 reader.readAsDataURL(selectedFile);
@@ -124,6 +129,12 @@ export default {
                     });
                 });
             }
+        },
+        doneScan() {
+            this.$emit("scaned",{img:this.currentImage.getSrc(true),flag:true,fileName:this.fileName})
+        },
+        cancelScan() {
+            this.$emit("scaned",{img:"",flag:false})
         },
         // -------------------------------------------------------------------------------------------------
         

@@ -1,5 +1,5 @@
 <template>
-  <ChartComp v-if="gotoChart" @scan="setScanner" />
+  <ChartComp :imageUrl="imageLink" :isImageDisplayed="showImage" :fileName = "fileName"  v-if="gotoChart" @scan="setScanner" />
   <ScanComp v-if="gotoScan" @scaned="setChart" />
 </template >
     
@@ -15,6 +15,8 @@ export default {
       gotoScan: false,
       gotoMount: false,
       gotoChart: true,
+      imageLink: '',
+      showImage: false
     }
   },
   methods: {
@@ -22,9 +24,18 @@ export default {
       this.gotoScan = true;
       this.gotoChart = false;
     },
-    setChart() {
+    setChart(data) {
       this.gotoChart = true
       this.gotoScan = false;
+      if(data.flag){
+        this.imageLink = data.img;
+        this.showImage = true;
+        this.fileName = data.fileName;
+      }
+      else{
+        this.showImage = false;
+      }
+
     }
   },
   components: {
@@ -36,10 +47,10 @@ export default {
     
 <style>
 #app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
+  /* font-family: Avenir, Helvetica, Arial, sans-serif; */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-align: center;
+  /* text-align: center; */
   letter-spacing: 1px;
   font-weight: bold;
   color: #13232b;
