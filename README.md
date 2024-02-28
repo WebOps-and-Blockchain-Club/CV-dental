@@ -26,7 +26,7 @@ UTILS =>
     index.js
         this has modules for email validation and password encryption
 
-        currently retundant for us
+        currently redundant for us
 
     upload.js 
         it contains a promise which uploads the file into the middleware's memory 
