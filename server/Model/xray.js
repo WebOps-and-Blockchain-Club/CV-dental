@@ -1,22 +1,14 @@
 const mongoose = require("mongoose");
 
 const xraySchema = new mongoose.Schema({
-  title: {
-    type: "string",
-    required: true,
-  },
   xray_url: {
     type: "string",
     default: "",
   },
-  patient_id: {
-    type: "string",
-    required: true,
-  },
-  tooth_id: {
-    type: "string",
-    required: true,
-  },
+  details : {
+    type : "objects",
+    default : {},
+  }
 });
 
 const Xray = mongoose.model("Xray", xraySchema);

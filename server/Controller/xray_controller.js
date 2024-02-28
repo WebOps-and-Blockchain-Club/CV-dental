@@ -40,7 +40,7 @@ module.exports.addXray = async function (req, res) {
         title: req.body.title,
         xray_url: publicUrl,
         tooth_id: req.body.tooth_id,
-        patient_id: req.body.patient_id,
+        patient_details: req.details
       });
       newXray.save();
       return res.status(200).json({
