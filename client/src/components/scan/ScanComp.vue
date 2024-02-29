@@ -1,5 +1,19 @@
 <template>
-    <div class="d-flex flex-column justify-content-center align-items-center">
+
+    <div v-if="patientselectmode"> 
+
+        <div >
+            <input type="text" v-model="selectedID" list="pid"/>
+            <datalist id="pid">
+            <option v-for="options in patientIDS"  v-bind:key="options"> {{ options }}</option>
+            </datalist>
+            <button @click="submit">Submit</button>
+            <button @click="addNew">Add New</button>
+          </div>
+    
+    </div>
+
+    <div v-if="scanmode" class="d-flex flex-column justify-content-center align-items-center">
         <h1>SCANNING</h1>
         <AddImg @scan="scanImg"
                 @upload="uploadImg" 
@@ -33,6 +47,8 @@
                 @moveMode = "moveMode"
                 @zoom = "zoom" />
     </div>
+
+    <button v-on:click = "emithome" > HOME </button>
 </template>
 
 <script>
@@ -51,6 +67,14 @@ export default {
     },
     data() {
         return {
+
+            patientselectmode:true,
+            scanmode:false,
+            
+            selectedID : "",
+
+            patientIDS : ["3243","423","546"],
+
             canvas:null,
             canvasBGColor:"#E1E3E9",
             canvasWidth:500,
@@ -68,7 +92,32 @@ export default {
             fileName: null
         }
     },
+    
     methods: {
+
+
+        submit() {
+            var flag =0
+            for (var r=0; r< this.patientIDS.length; ++r) {
+                console.log(this.patientIDS[r])
+                if (this.patientIDS[r] == this.selectedID) {flag=1 }
+            }
+            if (flag==0) alert("ID not found")
+            else {
+                this.scanmode = true;
+                this.patientselectmode=false;
+            }
+        },
+
+        addNew() {
+            this.patientIDS.push(this.selectedID);
+            this.scanmode = true;
+            this.patientselectmode=false;
+        },
+
+        emithome() {
+          this.$emit('home');
+        },
         scanImg() {
             this.connection.send("1100")
         },
@@ -131,10 +180,11 @@ export default {
             }
         },
         doneScan() {
-            this.$emit("scaned",{img:this.currentImage.getSrc(true),flag:true,fileName:this.fileName})
+            //backend scan
+            this.delScanImg();
         },
         cancelScan() {
-            this.$emit("scaned",{img:"",flag:false})
+            this.$emit('home')
         },
         // -------------------------------------------------------------------------------------------------
         
@@ -430,8 +480,9 @@ export default {
             this.canvas.setHeight(this.canvasHeight);
         },
         async make_connection(){
-            this.connection = new WebSocket("ws:///192.168.0.32")
-            this.connection.onmessage = (e) => {
+            //console.log("ERG")
+            this.connection = new WebSocket ( "ws:///10.42.80.138:8181")
+             this.connection.onmessage = (e) => {
                 if (e.data instanceof Blob) {
                     this.file = e.data
                     this.file.name = "File"
