@@ -6,8 +6,8 @@ const xraySchema = new mongoose.Schema({
     default: "",
   },
   details : {
-    type : "objects",
-    default : {},
+    type : "string",
+    default : "",
   }
 });
 
