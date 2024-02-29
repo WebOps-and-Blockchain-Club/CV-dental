@@ -66,7 +66,8 @@ export default {
 }
 
 #text {
-  font-size: larger;
-  color:black;
+  font-size: 30px;
+  color:rgb(60, 58, 58);
+  font-weight: bold;
 }
 </style>
