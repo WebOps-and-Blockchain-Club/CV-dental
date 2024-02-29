@@ -1,7 +1,4 @@
-
-SEVER =>
-
-    -algorithms to tear and stich images 
-    -algorithms to find images 
-    -algorihtm to decide which image needs to be placed were, which images need to be kept and with what priority
+Client =>   
+    the functionalities of the scan components are not working unable to load images
+    
     
