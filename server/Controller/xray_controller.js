@@ -7,7 +7,7 @@ const storage = new Storage({ keyFilename: "google-cloud-key.json" });
 const bucket = storage.bucket("cvteam");
 
 //add the patient data 
-module.exports.addPatient = async function (req, res) {
+module.exports.addPatientData = async function (req, res) {
   try {
     await processFile(req, res);
     if (!req.file) {
@@ -65,9 +65,11 @@ module.exports.addPatient = async function (req, res) {
 };
 
 //get the patient data
-module.exports.getAllPatients = async function (req, res) {
+module.exports.getPatientData = async function (req, res) {
   try {
-    let patient = await Patient.find({});
+    let patient = await Patient.find({
+      patientId:req.body.patientId
+    });
     return res.status(200).json({
       success: true,
       data: patient,
