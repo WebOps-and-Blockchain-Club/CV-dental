@@ -5,11 +5,6 @@ const teethSchema = new mongoose.Schema({
     type:String,
     required:true
   },
-<<<<<<< Updated upstream
-  details : {
-    type : "objects",
-    default : {},
-=======
   appointmentDate:{
     type:Date,
     required:true
@@ -29,7 +24,6 @@ const teethSchema = new mongoose.Schema({
   imageURL:{
     type:String,
     required:true
->>>>>>> Stashed changes
   }
 })
 
