@@ -1,9 +1,5 @@
 <template class="app">
 
-    <div class="appBar">
-      <img class="logo" :src="logo"/>
-      Dental Appointment
-    </div>
 
     <div v-if="patientselectmode"> 
 
@@ -12,7 +8,7 @@
           <datalist id="pid">
           <option v-for="options in patientIDS"  v-bind:key="options"> {{ options }}</option>
           </datalist>
-          <button id = "fgh" @click="submit">Submit</button>
+          <button id = "special" @click="submit">Submit</button>
         </div>
   
   </div>
@@ -33,7 +29,7 @@
       </div>
       
     </div>
-    <button v-on:click = "emithome"> HOME</button>
+    <button v-on:click = "emithome" id="home-button"> HOME</button>
 
 </template>
 
@@ -41,7 +37,6 @@
 
 import sample from "@/assets/avatar.png";
 
-import dummy1 from "@/assets/logo.jpg";
 
 // import placeholder from "@/assets/Sample.jpg"
 
@@ -130,7 +125,6 @@ export default
           previewImages: [],
           preview:noImage,
           avatar:sample,
-          logo:dummy1,
           option: 'scan',
           diseaseDisplay:false,
           current_title:'',
@@ -190,6 +184,13 @@ export default
     padding:0%;
   }
   
+
+  #special, #home-button {
+    cursor: pointer;
+    border:none;
+    appearance: none;
+    background-color:rgb(239, 240, 246);
+  }
 
   button{
     cursor: pointer;
