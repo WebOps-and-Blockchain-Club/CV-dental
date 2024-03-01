@@ -1,14 +1,15 @@
-const Xray = require("../Model/xray");
+const {Patient,Teeth} = require("../Model/xray");
+
 const processFile = require("../Utils/upload");
 const { format } = require("util");
 const { Storage } = require("@google-cloud/storage");
 const storage = new Storage({ keyFilename: "google-cloud-key.json" });
 const bucket = storage.bucket("cvteam");
 
-module.exports.addXray = async function (req, res) {
+//add the patient data 
+module.exports.addPatientData = async function (req, res) {
   try {
     await processFile(req, res);
-
     if (!req.file) {
       return res.status(400).send({ message: "Please upload a file!" });
     }
@@ -35,21 +36,26 @@ module.exports.addXray = async function (req, res) {
           url: publicUrl,
         });
       }
-
-      newXray = new Xray({
-        title: req.body.title,
-        xray_url: publicUrl,
-        tooth_id: req.body.tooth_id,
-        patient_details: req.details
-      });
-      newXray.save();
+      const newTeeth = new Teeth({
+        teethType:req.body.teethType,
+        appointmentDate:req.body.appointmentDate,
+        remark:req.body.remark,
+        teethId:req.body.teethId,
+        isXray:req.body.isXray,
+        imageURL:publicUrl
+      })
+      const newPatient = new Patient({
+        patientName: req.body.name,
+        patientId:req.body.patientId,
+        teethDetails:newTeeth
+      })
+      newPatient.save()
       return res.status(200).json({
         success: true,
-        data: newXray,
+        data: newPatient,
         message: "File uploaded Succesfully and Xray-img added!",
       });
     });
-
     blobStream.end(req.file.buffer);
   } catch (err) {
     res.status(500).send({
@@ -58,18 +64,18 @@ module.exports.addXray = async function (req, res) {
   }
 };
 
-module.exports.getAllXrayofPatient = async function (req, res) {
+//get the patient data
+module.exports.getPatientData = async function (req, res) {
   try {
-    let xray = await Xray.find({
-      patient_id: req.body.patient_id,
-      tooth_id: req.body.tooth_id,
+    let patient = await Patient.find({
+      patientId:req.body.patientId
     });
     return res.status(200).json({
       success: true,
-      data: xray,
+      data: patient,
     });
   } catch (err) {
-    console.log("Error in getting all xray: " + err);
+    console.log("Error in getting all patient data: " + err);
   }
 };
 
