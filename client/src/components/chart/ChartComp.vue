@@ -33,6 +33,10 @@
       </div>
       
     </div>
+
+    <div v-if="teethdata">
+      <TeethData></TeethData>
+    </div>
 </div>
 
 </template>
@@ -40,6 +44,8 @@
 <script>
 
 import sample from "@/assets/avatar.png";
+
+import TeethData from "./TeethData.vue";
 
 
 // import placeholder from "@/assets/Sample.jpg"
@@ -82,11 +88,15 @@ import noImage from "@/assets/noImages.png";
 export default
 {
     name:'ChartComp',
+    components : {
+      TeethData,
+    },
     data(){
         return{
 
           patientselectmode : true,
           previewmode:false,
+          teethdata:false,
 
           patientIDS : [],
 
@@ -141,6 +151,7 @@ export default
         //need to validate
         this.patientselectmode = false;
         this.previewmode = true;
+        this.teethdata = false;
       },
       emithome() {
           this.$emit('home');
@@ -151,6 +162,8 @@ export default
         },
         clickTooth(){
          //connect to the backend and display the images
+          this.previewmode=false
+          this.teethdata =true
         },
     },
     props: {
@@ -178,7 +191,7 @@ export default
         this.current_title = this.diseaseData[parseInt(this.fileName[0])-1].title
         this.current_dis = this.diseaseData[parseInt(this.fileName[0])-1].des
       }
-    }
+    },
 }
 </script>
 
