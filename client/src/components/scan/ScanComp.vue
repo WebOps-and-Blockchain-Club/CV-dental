@@ -430,7 +430,7 @@ export default {
             this.canvas.setHeight(this.canvasHeight);
         },
         async make_connection(){
-            this.connection = new WebSocket("ws:///192.168.0.32")
+            this.connection = new WebSocket("ws:///10.42.58.66:8181")
             this.connection.onmessage = (e) => {
                 if (e.data instanceof Blob) {
                     this.file = e.data
