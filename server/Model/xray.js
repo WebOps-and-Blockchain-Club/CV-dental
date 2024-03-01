@@ -44,4 +44,6 @@ const Patient = mongoose.model("PatientDetails", patientSchema)
 module.exports = {
   Teeth,
   Patient
+
 }
+
