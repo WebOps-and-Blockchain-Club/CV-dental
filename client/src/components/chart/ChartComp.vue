@@ -1,19 +1,23 @@
-<template class="app">
+<template>
 
+  <div id="home-wrapper">
+    <button v-on:click = "emithome" id="home-button"> HOME</button>
+  </div>
 
-    <div v-if="patientselectmode"> 
-
-      <div >
+<div id="main-wrapper">
+    <div id="patient-container"> 
+          <div id="input-container">
           <input type="text" v-model="selectedID" list="pid"/>
           <datalist id="pid">
           <option v-for="options in patientIDS"  v-bind:key="options"> {{ options }}</option>
           </datalist>
-          <button id = "special" @click="submit">Submit</button>
-        </div>
-  
+          </div>
+          <div id="submit">
+          <button id="special" @click="submit">Submit</button> 
+          </div> 
   </div>
     
-    <div v-if="previewmode">
+    <div v-if="previewmode" id="preview-container">
       <div class="d-flex flex-column chart glass-container">
         <div class="d-flex flex-row">
           <div class="UpperJaw"  v-for="id in ids.slice(0,16)" :key="id">
@@ -29,13 +33,19 @@
       </div>
       
     </div>
-    <button v-on:click = "emithome" id="home-button"> HOME</button>
+
+    <div v-if="teethdata">
+      <TeethData></TeethData>
+    </div>
+</div>
 
 </template>
 
 <script>
 
 import sample from "@/assets/avatar.png";
+
+import TeethData from "./TeethData.vue";
 
 
 // import placeholder from "@/assets/Sample.jpg"
@@ -78,11 +88,15 @@ import noImage from "@/assets/noImages.png";
 export default
 {
     name:'ChartComp',
+    components : {
+      TeethData,
+    },
     data(){
         return{
 
           patientselectmode : true,
           previewmode:false,
+          teethdata:false,
 
           patientIDS : [],
 
@@ -137,6 +151,7 @@ export default
         //need to validate
         this.patientselectmode = false;
         this.previewmode = true;
+        this.teethdata = false;
       },
       emithome() {
           this.$emit('home');
@@ -147,6 +162,8 @@ export default
         },
         clickTooth(){
          //connect to the backend and display the images
+          this.previewmode=false
+          this.teethdata =true
         },
     },
     props: {
@@ -174,7 +191,7 @@ export default
         this.current_title = this.diseaseData[parseInt(this.fileName[0])-1].title
         this.current_dis = this.diseaseData[parseInt(this.fileName[0])-1].des
       }
-    }
+    },
 }
 </script>
 
@@ -183,14 +200,52 @@ export default
     margin:0%;
     padding:0%;
   }
-  
+ 
+#patient-container {
+  display: flex;
+  align-content: center;
+  align-items: center; 
+  justify-content: center;
+  flex-grow: 0.25;
+}
+
+#preview-container {
+  display: flex;
+  align-items: center;
+  align-content: center;
+  justify-content: center;
+  flex-grow: 1;
+}
+
+#main-wrapper {
+  display:flex;
+  flex-direction: column;
+  height : 100vh;
+  align-items: center;
+  align-content: center;
+  justify-content: center;
+}
 
   #special, #home-button {
     cursor: pointer;
     border:none;
     appearance: none;
     background-color:rgb(239, 240, 246);
+    transform: none;
   }
+
+#home-wrapper {
+    display:block;
+    width:100vw;
+  }
+
+#input-container {
+    margin:10px;
+}
+
+#submit {
+    margin:10px;
+}
 
   button{
     cursor: pointer;
@@ -214,29 +269,6 @@ export default
     background-color:slategray;
   }
 
-  .appBar{
-    display: flex;
-    justify-content: left;
-    align-items: center;
-    background-color: rgb(46, 50, 71);
-    color: whitesmoke;
-    font: 1.2rem/1 "Helvetica Neue", Helvetica, Arial, sans-serif;
-  }
-  p{
-    display: flex;
-    justify-content: center;
-    font-size: xx-small;
-    margin: 4%;
-    color: black;
-    font: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  }
-
-
-  .logo{
-    max-width: 50px;
-    max-height: 50px;
-    padding: 0.5%;
-  }
   .glass-container{
     backdrop-filter: blur(11px) saturate(156%);
     -webkit-backdrop-filter: blur(11px) saturate(156%);

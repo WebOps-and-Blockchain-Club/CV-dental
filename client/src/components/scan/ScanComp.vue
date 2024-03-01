@@ -1,20 +1,28 @@
 <template>
 
-    <div v-if="patientselectmode"> 
 
-        <div >
-            <input type="text" v-model="selectedID" list="pid"/>
-            <datalist id="pid">
-            <option v-for="options in patientIDS"  v-bind:key="options"> {{ options }}</option>
-            </datalist>
-            <button @click="submit">Submit</button>
-            <button @click="addNew">Add New</button>
+    <button v-on:click = "emithome" > HOME </button>
+
+    <div id="selection-wrapper"> 
+
+        <div>
+            <div id="selection-items">
+                <input type="text" v-model="selectedID" list="pid"/>
+                <datalist id="pid">
+                <option v-for="options in patientIDS"  v-bind:key="options"> {{ options }}</option>
+                </datalist>
+            </div>
+            <div id="selection-items">
+                <button @click="submit">Submit</button>
+            </div>
+            <div id="selection-items">
+                <button @click="addNew">Add New</button>
+            </div>
           </div>
     
     </div>
 
     <div v-if="scanmode" class="d-flex flex-column justify-content-center align-items-center">
-        <h1>SCANNING</h1>
         <AddImg @scan="scanImg"
                 @upload="uploadImg" 
                 @del="delScanImg" 
@@ -48,7 +56,6 @@
                 @zoom = "zoom" />
     </div>
 
-    <button v-on:click = "emithome" > HOME </button>
 </template>
 
 <script>
@@ -523,7 +530,13 @@ export default {
   border: 1px solid black;
 }
 
-
+#selection-wrapper {
+    display: block;
+}
+#selection-items {
+    margin:10px;
+    display: inline-block;
+}
 
 
 </style>
