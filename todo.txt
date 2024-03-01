@@ -1,0 +1,28 @@
+identify bugs in the code
+complete documentation
+database => design and implementation, integration
+fix scanner
+we need an algo for identifying the which teeth it is ( identify and select) => on the basis of the box we can partition the images
+change ui to be able to accept patient id => appointment => teeth 
+	in the scan part => will only take the image
+	in the preview part => mount , ability to choose images according to the person , appointment and teeth id ( not all nessecary dependent upon the prompt in a tabular format)
+
+create mount frame only
+
+
+
+future =>
+
+	stiching images to create new images helping dentist in analysis
+	use AI to do basic analysis of the teeth
+	whatever Sir told in the video
+
+
+ANSH => 1,6
+ROHITH => 3, 2(server)
+SARANATHAN => 4,5,2(client)  
+AYUSH => PPT,5
+	
+
+
+

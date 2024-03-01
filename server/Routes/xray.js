@@ -4,7 +4,9 @@ const router = express.Router();
 const xrayController = require("../Controller/xray_controller");
 
 router.post("/addxray", xrayController.addPatientData);
+
 router.get("/getallxray:patientId", xrayController.getPatientData);
+
 router.get("/getxray", xrayController.downloadXray);
 router.get("/dummyApi", xrayController.dummyApi);
 router.get("/patientcount", xrayController.getPatientCount);

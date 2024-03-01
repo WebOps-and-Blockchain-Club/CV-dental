@@ -1,51 +1,59 @@
 <template>
-  <ChartComp :imageUrl="imageLink" :isImageDisplayed="showImage" :fileName = "fileName"  v-if="gotoChart" @scan="setScanner" />
-  <ScanComp v-if="gotoScan" @scaned="setChart" />
-</template >
-    
-<script>
-import ScanComp from './components/scan/ScanComp.vue'
-//import MountComp from './components/mount/MountComp.vue'
+  <div id>
+    <div class="appBar">
+      <img class="logo" :src="logo"/>
+      Dental Appointment
+    </div>
+  <HomePage  v-if="home" @gotoScan="setScanner"   @gotoPreview="setChart" /> 
+  <ChartComp :imageUrl="imageLink" :isImageDisplayed="showImage" :fileName = "fileName"  v-if="preview" @scan="setScanner" @home="setHome" />
+   <ScanComp v-if="scan" @scaned="setChart" @home="setHome"/>
+</div>
+</template>
+
+<script> 
+import HomePage from './components/Home/HomeComp.vue'
 import ChartComp from './components/chart/ChartComp.vue'
+import ScanComp from './components/scan/ScanComp.vue'
+
+import dummy1 from "@/assets/logo.jpg";
 
 export default {
-  name: 'App',
-  data() {
-    return {
-      gotoScan: false,
-      gotoMount: false,
-      gotoChart: true,
-      imageLink: '',
-      showImage: false
-    }
-  },
-  methods: {
-    setScanner() {
-      this.gotoScan = true;
-      this.gotoChart = false;
+    name : "App",
+    components : {
+        ScanComp,
+        ChartComp,
+        HomePage,
     },
-    setChart(data) {
-      this.gotoChart = true
-      this.gotoScan = false;
-      if(data.flag){
-        this.imageLink = data.img;
-        this.showImage = true;
-        this.fileName = data.fileName;
-      }
-      else{
-        this.showImage = false;
-      }
-
+    data () {
+        return  {
+          logo:dummy1,
+            home: true,
+            scan: false,
+            preview : false,
+        }
+    },
+    methods: {
+    setScanner() {
+      this.scan = true;
+      this.preview = false;
+      this.home = false;
+    },
+    setChart() {
+      this.preview = true;
+      this.scan = false;
+      this.home = false;
+      
+    },
+    setHome() {
+      this.preview = false;
+      this.scan = false;
+      this.home = true;
     }
-  },
-  components: {
-    ScanComp,
-    ChartComp
-  },
+},
 }
 </script>
-    
-<style>
+
+<style >
 #app {
   /* font-family: Avenir, Helvetica, Arial, sans-serif; */
   -webkit-font-smoothing: antialiased;
@@ -59,5 +67,19 @@ export default {
   
   height: 100vh;
 }
+.appBar{
+  display: flex;
+  justify-content: left;
+  align-items: center;
+  background-color: rgb(46, 50, 71);
+  color: whitesmoke;
+  font: 1.2rem/1 "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+.logo{
+  max-width: 50px;
+  max-height: 50px;
+  padding: 0.5%;
+}
+
 </style>
-    
