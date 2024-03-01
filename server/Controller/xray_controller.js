@@ -1,14 +1,15 @@
-const Xray = require("../Model/xray");
+const {Patient,Teeth} = require("../Model/xray");
+
 const processFile = require("../Utils/upload");
 const { format } = require("util");
 const { Storage } = require("@google-cloud/storage");
 const storage = new Storage({ keyFilename: "google-cloud-key.json" });
 const bucket = storage.bucket("cvteam");
 
-module.exports.addXray = async function (req, res) {
+//add the patient data 
+module.exports.addPatientData = async function (req, res) {
   try {
     await processFile(req, res);
-
     if (!req.file) {
       return res.status(400).send({ message: "Please upload a file!" });
     }
@@ -35,21 +36,26 @@ module.exports.addXray = async function (req, res) {
           url: publicUrl,
         });
       }
-
-      newXray = new Xray({
-        title: req.body.title,
-        xray_url: publicUrl,
-        tooth_id: req.body.tooth_id,
-        patient_details: req.details
-      });
-      newXray.save();
+      const newTeeth = new Teeth({
+        teethType:req.body.teethType,
+        appointmentDate:req.body.appointmentDate,
+        remark:req.body.remark,
+        teethId:req.body.teethId,
+        isXray:req.body.isXray,
+        imageURL:publicUrl
+      })
+      const newPatient = new Patient({
+        patientName: req.body.name,
+        patientId:req.body.patientId,
+        teethDetails:newTeeth
+      })
+      newPatient.save()
       return res.status(200).json({
         success: true,
-        data: newXray,
+        data: newPatient,
         message: "File uploaded Succesfully and Xray-img added!",
       });
     });
-
     blobStream.end(req.file.buffer);
   } catch (err) {
     res.status(500).send({
@@ -58,18 +64,18 @@ module.exports.addXray = async function (req, res) {
   }
 };
 
-module.exports.getAllXrayofPatient = async function (req, res) {
+//get the patient data
+module.exports.getPatientData = async function (req, res) {
   try {
-    let xray = await Xray.find({
-      patient_id: req.body.patient_id,
-      tooth_id: req.body.tooth_id,
+    let patient = await Patient.find({
+      patientId:req.body.patientId
     });
     return res.status(200).json({
       success: true,
-      data: xray,
+      data: patient,
     });
   } catch (err) {
-    console.log("Error in getting all xray: " + err);
+    console.log("Error in getting all patient data: " + err);
   }
 };
 
@@ -79,6 +85,87 @@ module.exports.downloadXray = async function (req, res) {
     res.redirect(metaData.mediaLink);
   } catch (err) {
     console.log("Error in downloading xray: " + err);
+  }
+};
+
+//total number of patients count->>
+module.exports.getPatientCount = async function (req, res) {
+  try {
+      const count = await Patient.countDocuments();
+      
+      return res.status(200).json({
+          success: true,
+          count: count
+      });
+  } catch (err) {
+      console.log("Error in getting patient count: " + err);
+      return res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+//patient's appointments by ID ->>
+module.exports.getAppointments = async function (req, res) {
+  try {
+      const patientId = req.params.patientId;
+      
+      const patient = await Patient.findOne({ patientId: patientId });
+
+      if (!patient) {
+          return res.status(404).json({ success: false, message: "Patient not found" });
+      }
+
+      const appointments = patient.teethDetails.map(teeth => ({
+          appointmentDate: teeth.appointmentDate,
+          remark: teeth.remark
+      }));
+
+      return res.status(200).json({
+          success: true,
+          data: appointments
+      });
+  } catch (err) {
+      console.log("Error in getting patient's appointments: " + err);
+      return res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+//get a patient's teeth details by it's ID
+module.exports.getTeethDetails = async function (req, res) {
+  try {
+      const patientId = req.params.patientId;
+      const patient = await Patient.findOne({ patientId: patientId });
+
+      if (!patient) {
+          return res.status(404).json({ success: false, message: "Patient not found" });
+      }
+
+      const teethDetails = patient.teethDetails;
+
+      return res.status(200).json({
+          success: true,
+          data: teethDetails
+      });
+  } catch (err) {
+      console.log("Error in getting patient's teeth details: " + err);
+      return res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+// Function to search for patients by name
+module.exports.searchPatientsByName = async function (req, res) {
+  try {
+      const query = req.query.query;
+
+      // Search for patients by name
+      const patients = await Patient.find({
+          patientName: { $regex: query, $options: 'i' } // Case-insensitive search by patient name
+      });
+
+      return res.status(200).json({
+          success: true,
+          data: patients
+      });
+  } catch (err) {
+      console.log("Error in searching patients by name: " + err);
+      return res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
