@@ -1,3 +1,4 @@
+
 <template class="app">
 
 
@@ -36,7 +37,7 @@
 <script>
 
 import sample from "@/assets/avatar.png";
-
+import axios from 'axios';
 
 // import placeholder from "@/assets/Sample.jpg"
 
@@ -80,6 +81,7 @@ export default
     name:'ChartComp',
     data(){
         return{
+          socket:null,
 
           patientselectmode : true,
           previewmode:false,
@@ -142,44 +144,61 @@ export default
       //   this.previewmode = true;
       // },
       submit() {
+       //const patientId = this.selectedID;
+        axios.get(`http://localhost:8181/xray/getallxray/123`)
+      .then(response => {
+        console.log("got response");
+        console.log(response.data);
+        // handle the response data
+      })
+      .catch(error => {
+        console.error(error);
+        // handle the error
+      });
     // Retrieve patient ID from the input field
-        const patientId = this.selectedID;
+        // const patientId = this.selectedID;
+        // console.log(this.socket);
+        // this.socket.send(JSON.stringify({ patientId }));
+        // this.socket.send("Hello2");
+        // this.socket.onmessage = (event) => {
+        //   console.log(event.data);
+        // }
 
     // Connect to WebSocket server
-    const socket = new WebSocket("ws:///10.211.55.4:8181");
+   
 
     // When WebSocket connection is established
-    socket.onopen = () => {
-      console.log('WebSocket connection established');
+    // this.socket.onopen = () => {
+    //   console.log('WebSocket connection established');
 
-        // Send the patient ID to the server
-        socket.send(JSON.stringify({ patientId }));
-        console.log('Patient ID sent to the server:', patientId);
+    //     // Send the patient ID to the server
+    //     this.socket.send(JSON.stringify({ patientId }));
+    //     console.log('Patient ID sent to the server:', patientId);
 
-        // Listen for messages from the server
-        socket.onmessage = (event) => {
-            console.log('Message from server:', event.data);
-            // Parse the received data
-            const data = JSON.parse(event.data);
+    //     // Listen for messages from the server
+    //     this.socket.onmessage = (event) => {
+    //         console.log('Message from server:', event.data);
+    //         // Parse the received data
+    //         const data = JSON.parse(event.data);
             
-            if (data.error) {
-                // Handle error from the server
-                console.error('Error retrieving patient data:', data.error);
-                // Optionally show an error message to the user
-                // this.errorMessage = data.error;
-            } else {
+    //         if (data.error) {
+    //             // Handle error from the server
+    //             console.error('Error retrieving patient data:', data.error);
+    //             // Optionally show an error message to the user
+    //             // this.errorMessage = data.error;
+    //         } else {
                
-                console.log('Patient data:', data);
-                // this.patientData = data;
-            }
+    //             console.log('Patient data:', data);
+    //             // this.patientData = data;
+    //         }
 
-            // Close the WebSocket connection
-            socket.close();
-        };
-    };
+    //         // Close the WebSocket connection
+    //         this.socket.close();
+    //     };
+    // };
 
     // Handle errors
-    socket.onerror = (error) => {
+    this.socket.onerror = (error) => {
         console.error('WebSocket error: ', error);
         // Optionally show an error message to the user
         // this.errorMessage = 'WebSocket error: ' + error.message;
@@ -213,7 +232,14 @@ export default
             required: true
         }
     },
-    mounted(){
+    created(){
+      this.socket = new WebSocket("ws:///10.211.55.4:8181");
+      console.log(this.socket);
+      this.socket.onopen = () => {
+        console.log('WebSocket connection established');
+        this.socket.send("Hello");
+      };
+
       // previwImages arrays add 32 dummy images with noImage
       for (let i = 0; i < 32; i++) {
         this.previewImages.push(noImage);
@@ -225,7 +251,10 @@ export default
         this.current_dis = this.diseaseData[parseInt(this.fileName[0])-1].des
       }
     }
+   
 }
+
+
 </script>
 
 <style scoped>
