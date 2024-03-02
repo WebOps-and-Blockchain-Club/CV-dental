@@ -116,16 +116,7 @@ Lifecycle Hooks
 mounted: Initializes the component, populates the preview images array, and sets the preview image and disease display based on props.
 
 
-
-#### Usage
-
-```vue
-<template>
-  <App/>
-</template>
-
-
-Server =>
+## Server =>
 
 Basic design of the database =>
 

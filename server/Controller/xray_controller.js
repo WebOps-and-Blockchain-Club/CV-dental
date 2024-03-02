@@ -88,6 +88,87 @@ module.exports.downloadXray = async function (req, res) {
   }
 };
 
+//total number of patients count->>
+module.exports.getPatientCount = async function (req, res) {
+  try {
+      const count = await Patient.countDocuments();
+      
+      return res.status(200).json({
+          success: true,
+          count: count
+      });
+  } catch (err) {
+      console.log("Error in getting patient count: " + err);
+      return res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+//patient's appointments by ID ->>
+module.exports.getAppointments = async function (req, res) {
+  try {
+      const patientId = req.params.patientId;
+      
+      const patient = await Patient.findOne({ patientId: patientId });
+
+      if (!patient) {
+          return res.status(404).json({ success: false, message: "Patient not found" });
+      }
+
+      const appointments = patient.teethDetails.map(teeth => ({
+          appointmentDate: teeth.appointmentDate,
+          remark: teeth.remark
+      }));
+
+      return res.status(200).json({
+          success: true,
+          data: appointments
+      });
+  } catch (err) {
+      console.log("Error in getting patient's appointments: " + err);
+      return res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+//get a patient's teeth details by it's ID
+module.exports.getTeethDetails = async function (req, res) {
+  try {
+      const patientId = req.params.patientId;
+      const patient = await Patient.findOne({ patientId: patientId });
+
+      if (!patient) {
+          return res.status(404).json({ success: false, message: "Patient not found" });
+      }
+
+      const teethDetails = patient.teethDetails;
+
+      return res.status(200).json({
+          success: true,
+          data: teethDetails
+      });
+  } catch (err) {
+      console.log("Error in getting patient's teeth details: " + err);
+      return res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+// Function to search for patients by name
+module.exports.searchPatientsByName = async function (req, res) {
+  try {
+      const query = req.query.query;
+
+      // Search for patients by name
+      const patients = await Patient.find({
+          patientName: { $regex: query, $options: 'i' } // Case-insensitive search by patient name
+      });
+
+      return res.status(200).json({
+          success: true,
+          data: patients
+      });
+  } catch (err) {
+      console.log("Error in searching patients by name: " + err);
+      return res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
 module.exports.dummyApi = async (req, res) => {
   console.log("working")
   res.status(200).send({
