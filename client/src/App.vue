@@ -64,6 +64,8 @@ export default {
   color: #13232b;
   background-image: url('~@/../src/assets/chartbg.jpg');
   background-size: cover;
+  background-position: center;
+  background-position: fixed;
   
   height: 100vh;
 }
