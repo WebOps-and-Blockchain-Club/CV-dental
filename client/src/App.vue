@@ -68,6 +68,8 @@ export default {
   background-position: fixed;
   
   height: 100vh;
+
+  
 }
 .appBar{
   display: flex;
@@ -83,5 +85,8 @@ export default {
   max-height: 50px;
   padding: 0.5%;
 }
+
+
+
 
 </style>

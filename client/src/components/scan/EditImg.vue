@@ -69,15 +69,6 @@
                         <input v-model="brushSize" id="id2" class="form-range slider" type="range" min="1" max="30" step="1" @input="adjustBrushSize"/>
                         <div class="mx-2 inputValue">{{brushSize}}</div>
                     </span>  
-                    <div>
-                        <button @click="clearDrawing" id="clear" class="btn btn-light" title="Clear Drawing">Clear</button>
-                        <button @click="clickApplyDrawing" id="clear" class="btn btn-light" title="Replace Image">
-                            <img :src="replaceBtnIcn"  class="btn-img"/>
-                        </button>
-                        <button @click="clickDrawCancel" id="clear" class="btn btn-light" title="Cancel Changes">
-                            <img :src="cancelBtnIcn"  class="btn-img"/>
-                        </button>
-                    </div>
               </div>
             </div>
         </div>
