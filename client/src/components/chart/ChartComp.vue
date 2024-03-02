@@ -133,11 +133,61 @@ export default
     },
     methods:{
 
+
+
+
+      // submit() {
+      //   //need to validate
+      //   this.patientselectmode = false;
+      //   this.previewmode = true;
+      // },
       submit() {
-        //need to validate
-        this.patientselectmode = false;
-        this.previewmode = true;
-      },
+    // Retrieve patient ID from the input field
+        const patientId = this.selectedID;
+
+    // Connect to WebSocket server
+    const socket = new WebSocket("ws:///10.211.55.4:8181");
+
+    // When WebSocket connection is established
+    socket.onopen = () => {
+      console.log('WebSocket connection established');
+
+        // Send the patient ID to the server
+        socket.send(JSON.stringify({ patientId }));
+        console.log('Patient ID sent to the server:', patientId);
+
+        // Listen for messages from the server
+        socket.onmessage = (event) => {
+            console.log('Message from server:', event.data);
+            // Parse the received data
+            const data = JSON.parse(event.data);
+            
+            if (data.error) {
+                // Handle error from the server
+                console.error('Error retrieving patient data:', data.error);
+                // Optionally show an error message to the user
+                // this.errorMessage = data.error;
+            } else {
+               
+                console.log('Patient data:', data);
+                // this.patientData = data;
+            }
+
+            // Close the WebSocket connection
+            socket.close();
+        };
+    };
+
+    // Handle errors
+    socket.onerror = (error) => {
+        console.error('WebSocket error: ', error);
+        // Optionally show an error message to the user
+        // this.errorMessage = 'WebSocket error: ' + error.message;
+    };
+
+    // Prevent the form from being submitted in the traditional way
+    return false;
+},
       emithome() {
           this.$emit('home');
         },
