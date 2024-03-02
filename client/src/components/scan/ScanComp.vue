@@ -1,20 +1,28 @@
 <template>
 
-    <div v-if="patientselectmode"> 
 
-        <div >
-            <input type="text" v-model="selectedID" list="pid"/>
-            <datalist id="pid">
-            <option v-for="options in patientIDS"  v-bind:key="options"> {{ options }}</option>
-            </datalist>
-            <button @click="submit">Submit</button>
-            <button @click="addNew">Add New</button>
+    <button v-on:click = "emithome"  style="margin:15px" class="custom"> HOME </button>
+
+    <div id="selection-wrapper"> 
+
+        <div>
+            <div id="selection-items">
+                <input type="text"  class="teeth-text-field" v-model="selectedID" list="pid"/>
+                <datalist id="pid">
+                <option v-for="options in patientIDS"  v-bind:key="options"> {{ options }}</option>
+                </datalist>
+            </div>
+            <div id="selection-items">
+                <button @click="submit" class="custom">Submit</button>
+            </div>
+            <div id="selection-items">
+                <button @click="addNew" class="custom">Add New</button>
+            </div>
           </div>
     
     </div>
 
     <div v-if="scanmode" class="d-flex flex-column justify-content-center align-items-center">
-        <h1>SCANNING</h1>
         <AddImg @scan="scanImg"
                 @upload="uploadImg" 
                 @del="delScanImg" 
@@ -26,7 +34,7 @@
         
         
         <div id="fabric-canvas-wrapper">
-            <canvas ref="canvas" id="drawingCanvas" class="can"></canvas>
+            <canvas ref="canvas" id="drawingCanvas" width="400" height="400" class="can"></canvas>
         </div>
 
         <EditImg @crop="cropImg"
@@ -42,13 +50,10 @@
                 @apply_change_draw = "apply_change_draw"
                 @cancelCrop="cancelCrop" 
                 @cancelTransform = "cancelTransform"
-                @cancelDraw = "cancelDraw"
-                @clearDraw = "clearDraw"
                 @moveMode = "moveMode"
                 @zoom = "zoom" />
     </div>
 
-    <button v-on:click = "emithome" > HOME </button>
 </template>
 
 <script>
@@ -476,12 +481,12 @@ export default {
             this.canvas = new fabric.fabric.Canvas(this.$refs.canvas);
             this.canvas.backgroundColor = this.canvasBGColor;
             this.canvas.preserveObjectStacking = true;
-            this.canvas.setWidth(this.canvasWidth);
-            this.canvas.setHeight(this.canvasHeight);
+            this.canvas.setWidth(400);
+            this.canvas.setHeight(400);
         },
         async make_connection(){
             //console.log("ERG")
-            this.connection = new WebSocket ( "ws:///10.211.55.4:8181")
+            this.connection = new WebSocket ( "ws:///10.42.80.138:8181")
              this.connection.onmessage = (e) => {
                 if (e.data instanceof Blob) {
                     this.file = e.data
@@ -523,7 +528,44 @@ export default {
   border: 1px solid black;
 }
 
+#selection-wrapper {
+    display: block;
+}
+#selection-items {
+    margin:10px;
+    display: inline-block;
+}
 
+.custom {
+    background-color: #808080; /* Grey background color */
+    color: #ffffff; /* Text color */
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .custom:hover {
+    background-color: #606060; /* Darker grey on hover */
+  }
+
+  
+  .teeth-text-field {
+    padding: 10px;
+    font-size: 16px;
+    border: 2px solid #bbb;
+    border-radius: 20px;
+    outline: none;
+    transition: border-color 0.3s;
+    width: 200px;
+    color:aliceblue;
+  }
+
+ 
+  .teeth-text-field:focus {
+    border-color: #666; 
+  }
 
 
 </style>

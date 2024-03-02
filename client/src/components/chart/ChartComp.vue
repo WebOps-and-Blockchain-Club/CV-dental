@@ -1,20 +1,23 @@
+<template>
 
-<template class="app">
+  <div id="home-wrapper">
+    <button v-on:click = "emithome" id="home-button" style="margin:15px;" class="custom"> HOME</button>
+  </div>
 
-
-    <div v-if="patientselectmode"> 
-
-      <div >
-          <input type="text" v-model="selectedID" list="pid"/>
+<div id="main-wrapper">
+    <div id="patient-container"> 
+          <div id="input-container">
+          <input type="text" class="teeth-text-field" v-model="selectedID" list="pid"/>
           <datalist id="pid">
           <option v-for="options in patientIDS"  v-bind:key="options"> {{ options }}</option>
           </datalist>
-          <button id = "special" @click="submit">Submit</button>
-        </div>
-  
+          </div>
+          <div id="submit">
+          <button id="special" class="custom" @click="submit">Submit</button> 
+          </div> 
   </div>
     
-    <div v-if="previewmode">
+    <div v-if="previewmode" id="preview-container">
       <div class="d-flex flex-column chart glass-container">
         <div class="d-flex flex-row">
           <div class="UpperJaw"  v-for="id in ids.slice(0,16)" :key="id">
@@ -30,14 +33,20 @@
       </div>
       
     </div>
-    <button v-on:click = "emithome" id="home-button"> HOME</button>
+
+    <div v-if="teethdata" >
+      <TeethData></TeethData>
+    </div>
+</div>
 
 </template>
 
 <script>
 
 import sample from "@/assets/avatar.png";
-import axios from 'axios';
+
+import TeethData from "./TeethData.vue";
+
 
 // import placeholder from "@/assets/Sample.jpg"
 
@@ -79,12 +88,15 @@ import noImage from "@/assets/noImages.png";
 export default
 {
     name:'ChartComp',
+    components : {
+      TeethData,
+    },
     data(){
         return{
-          socket:null,
 
           patientselectmode : true,
           previewmode:false,
+          teethdata:false,
 
           patientIDS : [],
 
@@ -135,78 +147,12 @@ export default
     },
     methods:{
 
-
-
-
-      // submit() {
-      //   //need to validate
-      //   this.patientselectmode = false;
-      //   this.previewmode = true;
-      // },
       submit() {
-       //const patientId = this.selectedID;
-        axios.get(`http://localhost:8181/xray/getallxray/123`)
-      .then(response => {
-        console.log("got response");
-        console.log(response.data);
-        // handle the response data
-      })
-      .catch(error => {
-        console.error(error);
-        // handle the error
-      });
-    // Retrieve patient ID from the input field
-        // const patientId = this.selectedID;
-        // console.log(this.socket);
-        // this.socket.send(JSON.stringify({ patientId }));
-        // this.socket.send("Hello2");
-        // this.socket.onmessage = (event) => {
-        //   console.log(event.data);
-        // }
-
-    // Connect to WebSocket server
-   
-
-    // When WebSocket connection is established
-    // this.socket.onopen = () => {
-    //   console.log('WebSocket connection established');
-
-    //     // Send the patient ID to the server
-    //     this.socket.send(JSON.stringify({ patientId }));
-    //     console.log('Patient ID sent to the server:', patientId);
-
-    //     // Listen for messages from the server
-    //     this.socket.onmessage = (event) => {
-    //         console.log('Message from server:', event.data);
-    //         // Parse the received data
-    //         const data = JSON.parse(event.data);
-            
-    //         if (data.error) {
-    //             // Handle error from the server
-    //             console.error('Error retrieving patient data:', data.error);
-    //             // Optionally show an error message to the user
-    //             // this.errorMessage = data.error;
-    //         } else {
-               
-    //             console.log('Patient data:', data);
-    //             // this.patientData = data;
-    //         }
-
-    //         // Close the WebSocket connection
-    //         this.socket.close();
-    //     };
-    // };
-
-    // Handle errors
-    this.socket.onerror = (error) => {
-        console.error('WebSocket error: ', error);
-        // Optionally show an error message to the user
-        // this.errorMessage = 'WebSocket error: ' + error.message;
-    };
-
-    // Prevent the form from being submitted in the traditional way
-    return false;
-},
+        //need to validate
+        this.patientselectmode = false;
+        this.previewmode = true;
+        this.teethdata = false;
+      },
       emithome() {
           this.$emit('home');
         },
@@ -216,6 +162,8 @@ export default
         },
         clickTooth(){
          //connect to the backend and display the images
+          this.previewmode=false
+          this.teethdata =true
         },
     },
     props: {
@@ -232,14 +180,7 @@ export default
             required: true
         }
     },
-    created(){
-      this.socket = new WebSocket("ws:///10.211.55.4:8181");
-      console.log(this.socket);
-      this.socket.onopen = () => {
-        console.log('WebSocket connection established');
-        this.socket.send("Hello");
-      };
-
+    mounted(){
       // previwImages arrays add 32 dummy images with noImage
       for (let i = 0; i < 32; i++) {
         this.previewImages.push(noImage);
@@ -250,11 +191,8 @@ export default
         this.current_title = this.diseaseData[parseInt(this.fileName[0])-1].title
         this.current_dis = this.diseaseData[parseInt(this.fileName[0])-1].des
       }
-    }
-   
+    },
 }
-
-
 </script>
 
 <style scoped>
@@ -262,14 +200,45 @@ export default
     margin:0%;
     padding:0%;
   }
-  
+ 
+#patient-container {
+  display: flex;
+  align-content: center;
+  align-items: center; 
+  justify-content: center;
+  flex-grow: 0.25;
+}
 
-  #special, #home-button {
-    cursor: pointer;
-    border:none;
-    appearance: none;
-    background-color:rgb(239, 240, 246);
+#preview-container {
+  display: flex;
+  align-items: center;
+  align-content: center;
+  justify-content: center;
+  flex-grow: 1;
+}
+
+#main-wrapper {
+  display:flex;
+  flex-direction: column;
+  height : 100vh;
+  align-items: center;
+  align-content: center;
+  justify-content: center;
+}
+
+
+#home-wrapper {
+    display:block;
+    width:100vw;
   }
+
+#input-container {
+    margin:10px;
+}
+
+#submit {
+    margin:10px;
+}
 
   button{
     cursor: pointer;
@@ -293,29 +262,6 @@ export default
     background-color:slategray;
   }
 
-  .appBar{
-    display: flex;
-    justify-content: left;
-    align-items: center;
-    background-color: rgb(46, 50, 71);
-    color: whitesmoke;
-    font: 1.2rem/1 "Helvetica Neue", Helvetica, Arial, sans-serif;
-  }
-  p{
-    display: flex;
-    justify-content: center;
-    font-size: xx-small;
-    margin: 4%;
-    color: black;
-    font: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  }
-
-
-  .logo{
-    max-width: 50px;
-    max-height: 50px;
-    padding: 0.5%;
-  }
   .glass-container{
     backdrop-filter: blur(11px) saturate(156%);
     -webkit-backdrop-filter: blur(11px) saturate(156%);
@@ -327,6 +273,41 @@ export default
     /* max-height: 270px; */
     padding: 13px;
   }
+
+
+  .custom {
+    background-color: #808080; 
+    color: #ffffff; 
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 5px;
+    transition: none;
+    transform: none;
+    cursor: pointer;
+  }
+  
+  .custom:hover {
+    background-color: #606060; 
+    transform : none;
+  }
+
+  .teeth-text-field {
+    padding: 10px;
+    font-size: 16px;
+    border: 2px solid #bbb;
+    border-radius: 20px;
+    outline: none;
+    transition: border-color 0.3s;
+    width: 200px;
+    color:aliceblue;
+  }
+
+ 
+  .teeth-text-field:focus {
+    border-color: #666; 
+  }
+  
 
 
 </style>
