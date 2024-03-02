@@ -34,7 +34,7 @@
       
     </div>
 
-    <div v-if="teethdata">
+    <div v-if="teethdata" >
       <TeethData></TeethData>
     </div>
 </div>
