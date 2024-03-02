@@ -82,23 +82,23 @@ module.exports.addPatientData = async function (req, res) {
 module.exports.getPatientData = async function (req, res) {
   try {
     console.log("Request received getPatientData");
-    // Check if the request is coming from WebSocket or HTTP
-    if (req.body && req.body.patientId) {
-      // Handle HTTP request
-      let patient = await Patient.find({
-        patientId:req.body.patientId
-      });
-      return res.status(200).json({
-        success: true,
-        data: patient,
-      });
-    } else if (req.params && req.params.patientId) {
-      // Handle WebSocket request
-      let patient = await Patient.find({
-        patientId:req.params.patientId
-      });
-      return patient;
-    }
+    // // Check if the request is coming from WebSocket or HTTP
+    // if (req.body && req.body.patientId) {
+    //   // Handle HTTP request
+    //   let patient = await Patient.find({
+    //     patientId:req.body.patientId
+    //   });
+    //   return res.status(200).json({
+    //     success: true,
+    //     data: patient,
+    //   });
+    // } else if (req.params && req.params.patientId) {
+    //   // Handle WebSocket request
+    //   let patient = await Patient.find({
+    //     patientId:req.params.patientId
+    //   });
+    //   return patient;
+    // }
   } catch (err) {
     console.log("Error in getting all patient data: " + err);
     // Handle errors and return appropriate response
@@ -136,6 +136,20 @@ module.exports.getPatientCount = async function (req, res) {
       console.log("Error in getting patient count: " + err);
       return res.status(500).json({ success: false, message: "Internal server error" });
   }
+};
+
+module.exports.getAll = async function (req, res) {
+  try {
+    const PatientData = await Patient.find({});
+    console.log(PatientData);
+    return res.status(200).json({
+      success: true,
+      data: PatientData,
+  });
+  }catch (err) {
+    console.log("Error in getting all patient data: " + err);
+  }
+     
 };
 //patient's appointments by ID ->>
 module.exports.getAppointments = async function (req, res) {
