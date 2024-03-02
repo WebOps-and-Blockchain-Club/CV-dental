@@ -1,19 +1,19 @@
 <template>
 
   <div id="home-wrapper">
-    <button v-on:click = "emithome" id="home-button"> HOME</button>
+    <button v-on:click = "emithome" id="home-button" style="margin:15px;" class="custom"> HOME</button>
   </div>
 
 <div id="main-wrapper">
     <div id="patient-container"> 
           <div id="input-container">
-          <input type="text" v-model="selectedID" list="pid"/>
+          <input type="text" class="teeth-text-field" v-model="selectedID" list="pid"/>
           <datalist id="pid">
           <option v-for="options in patientIDS"  v-bind:key="options"> {{ options }}</option>
           </datalist>
           </div>
           <div id="submit">
-          <button id="special" @click="submit">Submit</button> 
+          <button id="special" class="custom" @click="submit">Submit</button> 
           </div> 
   </div>
     
@@ -226,13 +226,6 @@ export default
   justify-content: center;
 }
 
-  #special, #home-button {
-    cursor: pointer;
-    border:none;
-    appearance: none;
-    background-color:rgb(239, 240, 246);
-    transform: none;
-  }
 
 #home-wrapper {
     display:block;
@@ -280,6 +273,41 @@ export default
     /* max-height: 270px; */
     padding: 13px;
   }
+
+
+  .custom {
+    background-color: #808080; 
+    color: #ffffff; 
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 5px;
+    transition: none;
+    transform: none;
+    cursor: pointer;
+  }
+  
+  .custom:hover {
+    background-color: #606060; 
+    transform : none;
+  }
+
+  .teeth-text-field {
+    padding: 10px;
+    font-size: 16px;
+    border: 2px solid #bbb;
+    border-radius: 20px;
+    outline: none;
+    transition: border-color 0.3s;
+    width: 200px;
+    color:aliceblue;
+  }
+
+ 
+  .teeth-text-field:focus {
+    border-color: #666; 
+  }
+  
 
 
 </style>

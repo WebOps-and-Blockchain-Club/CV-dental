@@ -2,7 +2,7 @@
 
     <div id="main-wrapper">
     
-        <button id="prev" @click="prev">PREVIOUS</button>
+        <button id="prev" @click="prev"> <img src="./chevron-left.svg" height="50px" width="50px"> </button>
         <div  id="item">
             <div style="display:flex; align-items:center; justify-content:center;">
             <img id="images" src="imagesrc">
@@ -14,7 +14,7 @@
             </div>
         </div>
     
-        <button id="next" @click="next">NEXT</button>
+        <button id="next" @click="next"> <img src="./chevron-right.svg" height="50px" width="50px">  </button>
     </div>
     
     
@@ -69,11 +69,11 @@
         ,
         methods: {
             prev() {
-                this.r = (this.r - 1 + this.toothdetail.length) % this.toothdetail.length;
+                this.r = Math.max((this.r - 1 ) ,0)
                 this.updateCurrentTeethData();
             },
             next() {
-                this.r = (this.r + 1) % this.toothdetail.length;
+                this.r = Math.min( (this.r + 1) ,this.toothdetail.length-1 )
                 this.updateCurrentTeethData();
             },
             updateCurrentTeethData() {
@@ -107,6 +107,7 @@
         width: 80vw;
         flex-grow : 1;
         display: inline-block;
+        color:aliceblue
     }
 
     #next,#prev {
@@ -119,6 +120,7 @@
         display: inline-block;
         width : 25%;
         height: inherit;
+        margin:10px;
     }
 
     
