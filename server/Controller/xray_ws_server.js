@@ -27,7 +27,6 @@ module.exports = function(server) {
                 console.error('Error retrieving patient data:', error);
                 // Send an error message back to the client if something goes wrong
                 ws.send(JSON.stringify({ error: 'Error retrieving patient data' }));
-
             }
         });
     });
