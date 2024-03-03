@@ -1,5 +1,4 @@
-const {Patient,Teeth} = require("../Model/xray");
-
+const { Patient, Teeth } = require("../Model/xray");
 const processFile = require("../Utils/upload");
 const { format } = require("util");
 const { Storage } = require("@google-cloud/storage");
@@ -8,6 +7,32 @@ const bucket = storage.bucket("cvteam");
 
 //add the patient data 
 module.exports.addPatientData = async function (req, res) {
+  // Create a new Teeth instance
+  const teeth = new Teeth({
+    teethType: 'Molar',
+    appointmentDate: new Date(),
+    remark: 'No issues',
+    teethId: 1,
+    isXray: false,
+    imageURL: 'http://example.com/image.jpg'
+  });
+
+  // Save the Teeth instance to the database
+  teeth.save()
+    .then(() => console.log('Teeth saved'))
+    .catch(err => console.error('Could not save teeth', err));
+
+  // Create a new Patient instance
+  const patient = new Patient({
+    patientId: 1,
+    patientName: 'John Doe',
+    teethDetails: [teeth] // you can also add multiple Teeth instances here
+  });
+
+  // Save the Patient instance to the database
+  patient.save()
+    .then(() => console.log('Patient saved'))
+    .catch(err => console.error('Could not save patient', err));
   try {
     await processFile(req, res);
     if (!req.file) {
@@ -37,17 +62,17 @@ module.exports.addPatientData = async function (req, res) {
         });
       }
       const newTeeth = new Teeth({
-        teethType:req.body.teethType,
-        appointmentDate:req.body.appointmentDate,
-        remark:req.body.remark,
-        teethId:req.body.teethId,
-        isXray:req.body.isXray,
-        imageURL:publicUrl
+        teethType: req.body.teethType,
+        appointmentDate: req.body.appointmentDate,
+        remark: req.body.remark,
+        teethId: req.body.teethId,
+        isXray: req.body.isXray,
+        imageURL: publicUrl
       })
       const newPatient = new Patient({
         patientName: req.body.name,
-        patientId:req.body.patientId,
-        teethDetails:newTeeth
+        patientId: req.body.patientId,
+        teethDetails: newTeeth
       })
       newPatient.save()
       return res.status(200).json({
@@ -78,10 +103,13 @@ module.exports.getAllData = async function (req, res) {
 //get the patient data
 module.exports.getPatientData = async function (req, res) {
   try {
-    const patient = await Patient.findOne({ patientId: req.body.patientId });
-    if (!patient) {
-      return res.status(404).json({ success: false, message: "Patient not found" });
-    }
+    console.log("Request received getPatientData");
+    // Check if the request is coming from WebSocket or HTTP
+    // Handle HTTP request
+    console.log("parameters are ", req.params)
+    let patient = await Patient.find({});
+    console.log("patient count is ", patient.length)
+    console.log("data is ", patient)
     return res.status(200).json({
       success: true,
       data: patient,
@@ -104,81 +132,95 @@ module.exports.downloadXray = async function (req, res) {
 //total number of patients count->>
 module.exports.getPatientCount = async function (req, res) {
   try {
-      const count = await Patient.countDocuments();
-      
-      return res.status(200).json({
-          success: true,
-          count: count
-      });
+    const count = await Patient.countDocuments();
+
+    return res.status(200).json({
+      success: true,
+      count: count
+    });
   } catch (err) {
-      console.log("Error in getting patient count: " + err);
-      return res.status(500).json({ success: false, message: "Internal server error" });
+    console.log("Error in getting patient count: " + err);
+    return res.status(500).json({ success: false, message: "Internal server error" });
   }
+};
+
+module.exports.getAll = async function (req, res) {
+  try {
+    const PatientData = await Patient.find({});
+    console.log(PatientData);
+    return res.status(200).json({
+      success: true,
+      data: PatientData,
+    });
+  } catch (err) {
+    console.log("Error in getting all patient data: " + err);
+  }
+
 };
 //patient's appointments by ID ->>
 module.exports.getAppointments = async function (req, res) {
   try {
-      const patientId = req.params.patientId;
-      
-      const patient = await Patient.findOne({ patientId: patientId });
+    const patientId = req.params.patientId;
 
-      if (!patient) {
-          return res.status(404).json({ success: false, message: "Patient not found" });
-      }
+    const patient = await Patient.findOne({ patientId: patientId });
 
-      const appointments = patient.teethDetails.map(teeth => ({
-          appointmentDate: teeth.appointmentDate,
-          remark: teeth.remark
-      }));
+    if (!patient) {
+      return res.status(404).json({ success: false, message: "Patient not found" });
+    }
 
-      return res.status(200).json({
-          success: true,
-          data: appointments
-      });
+    const appointments = patient.teethDetails.map(teeth => ({
+      appointmentDate: teeth.appointmentDate,
+      remark: teeth.remark
+    }));
+
+    return res.status(200).json({
+      success: true,
+      data: appointments
+    });
   } catch (err) {
-      console.log("Error in getting patient's appointments: " + err);
-      return res.status(500).json({ success: false, message: "Internal server error" });
+    console.log("Error in getting patient's appointments: " + err);
+    return res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 //get a patient's teeth details by it's ID
 module.exports.getTeethDetails = async function (req, res) {
   try {
-      const patientId = req.params.patientId;
-      const patient = await Patient.findOne({ patientId: patientId });
+    const patientId = req.params.patientId;
+    const patient = await Patient.findOne({ patientId: patientId });
 
-      if (!patient) {
-          return res.status(404).json({ success: false, message: "Patient not found" });
-      }
+    if (!patient) {
+      return res.status(404).json({ success: false, message: "Patient not found" });
+    }
 
-      const teethDetails = patient.teethDetails;
+    const teethDetails = patient.teethDetails;
 
-      return res.status(200).json({
-          success: true,
-          data: teethDetails
-      });
+    return res.status(200).json({
+      success: true,
+      data: teethDetails
+    });
   } catch (err) {
-      console.log("Error in getting patient's teeth details: " + err);
-      return res.status(500).json({ success: false, message: "Internal server error" });
+    console.log("Error in getting patient's teeth details: " + err);
+    return res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
 // Function to search for patients by name
 module.exports.searchPatientsByName = async function (req, res) {
   try {
-      const query = req.query.query;
+    const query = req.query.query;
 
-      // Search for patients by name
-      const patients = await Patient.find({
-          patientName: { $regex: query, $options: 'i' } // Case-insensitive search by patient name
-      });
+    // Search for patients by name
+    const patients = await Patient.find({
+      patientName: { $regex: query, $options: 'i' } // Case-insensitive search by patient name
+    });
 
-      return res.status(200).json({
-          success: true,
-          data: patients
-      });
+    return res.status(200).json({
+      success: true,
+      data: patients
+    });
   } catch (err) {
-      console.log("Error in searching patients by name: " + err);
-      return res.status(500).json({ success: false, message: "Internal server error" });
+    console.log("Error in searching patients by name: " + err);
+    return res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
