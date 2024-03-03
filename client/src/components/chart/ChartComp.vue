@@ -14,7 +14,12 @@
           </div>
           <div id="submit">
           <button id="special" class="custom" @click="submit">Submit</button> 
+          </div>
+          <div id="getall">
+          <button id="special" class="custom" @click="getall">Get All Data</button> 
+          <pre>{{ allData }}</pre>
           </div> 
+          
   </div>
     
     <div v-if="previewmode" id="preview-container">
@@ -42,6 +47,7 @@
 </template>
 
 <script>
+const axios = require('axios');
 
 import sample from "@/assets/avatar.png";
 
@@ -93,6 +99,7 @@ export default
     },
     data(){
         return{
+          allData: null,
 
           patientselectmode : true,
           previewmode:false,
@@ -148,10 +155,40 @@ export default
     methods:{
 
       submit() {
+
+        
         //need to validate
         this.patientselectmode = false;
         this.previewmode = true;
         this.teethdata = false;
+        
+      const patientId = this.selectedID;
+
+      axios.get(`http://localhost:8181/xray/getallxray:${patientId}`) // Changed URL to use template literal
+        .then(response => {
+          console.log(response.data);
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
+        // axios.get(`http://localhost:8181/xray/getalldata`) // Changed URL to use template literal
+        // .then(response => {
+        //   console.log(response.data);
+        // })
+        // .catch(error => {
+        //   console.error('Error:', error);
+        // });
+      },
+      getall(){
+        axios.get(`http://localhost:8181/xray/getalldata`) // Changed URL to use template literal
+        .then(response => {
+          this.allData = JSON.stringify(response.data, null, 2); // Convert the response data into a string
+          console.log(response.data);
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
+
       },
       emithome() {
           this.$emit('home');
