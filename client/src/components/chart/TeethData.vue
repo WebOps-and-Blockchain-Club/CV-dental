@@ -22,14 +22,18 @@
     
     <script>
     
-    
+    const axios = require('axios');
     
     export default {
         name: "TeethData",
+        props : {
+            patient : String,
+            teeth : String,
+        },
         data () {
             return {
                 r : 0,
-                
+
             toothdetail : [ { 
                 teethType : "teeth-type1" , 
                 appointmentDate : "0000-00-00" ,
@@ -85,6 +89,17 @@
         },
         created() {
             this.updateCurrentTeethData();
+            console.log(this.patient);
+            console.log(this.teeth);
+
+            axios.get(`mongodb+srv://CVdental:cvdental@cvdental.wikfuon.mongodb.net/patient/xray/getteethdetails/:${this.patient}/:${this.teeth}`) // Changed URL to use template literal
+        .then(response => {
+          console.log(response.data);
+          this.toothdetail = response.data;
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
         }
     };
     

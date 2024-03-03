@@ -42,8 +42,6 @@ const patientSchema = new mongoose.Schema({
 const Teeth = mongoose.model("TeethDetails", teethSchema);
 const Patient = mongoose.model("PatientDetails", patientSchema)
 module.exports = {
-  Teeth,
-  Patient
-
+  Patient,Teeth
 }
 
