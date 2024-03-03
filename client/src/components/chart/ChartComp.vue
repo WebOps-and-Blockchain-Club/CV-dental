@@ -15,24 +15,19 @@
           <div id="submit">
           <button id="special" class="custom" @click="submit">Submit</button> 
           </div>
-          <div id="getall">
-          <button id="special" class="custom" @click="getall">Get All Data</button> 
-          <pre>{{ allData }}</pre>
-          </div> 
-          
   </div>
     
     <div v-if="previewmode" id="preview-container">
       <div class="d-flex flex-column chart glass-container">
         <div class="d-flex flex-row">
           <div class="UpperJaw"  v-for="id in ids.slice(0,16)" :key="id">
-            <button type="submit"  @click="clickTooth"><img :id="id" :src="buttons[id].image" :title="buttons[id].title"/></button>
+            <button type="submit"  @click="clickTooth(id)"><img :id="id" :src="buttons[id].image" :title="buttons[id].title"/></button>
           </div>
         </div>
           <br/>
         <div class="d-flex flex-row">
           <div class="LowerJaw"  v-for="id in ids.slice(16,32)" :key="id">
-            <button type="submit"  @click="clickTooth"><img  :id="id" :src="buttons[id].image" :title="buttons[id].title"/></button>
+            <button type="submit"  @click="clickTooth(id)"><img  :id="id" :src="buttons[id].image" :title="buttons[id].title"/></button>
           </div>
         </div>
       </div>
@@ -40,14 +35,14 @@
     </div>
 
     <div v-if="teethdata" >
-      <TeethData></TeethData>
+      <TeethData  :patient="selectedID"  :teeth="teethinfo" ></TeethData>
     </div>
 </div>
 
 </template>
 
 <script>
-const axios = require('axios');
+
 
 import sample from "@/assets/avatar.png";
 
@@ -99,6 +94,9 @@ export default
     },
     data(){
         return{
+
+          teethinfo : -1,
+          selectedID :"",
           allData: null,
 
           patientselectmode : true,
@@ -156,21 +154,15 @@ export default
 
       submit() {
 
+        console.log(this.teethinfo , this.selectedID);
         
         //need to validate
         this.patientselectmode = false;
         this.previewmode = true;
         this.teethdata = false;
         
-      const patientId = this.selectedID;
 
-      axios.get(`http://localhost:8181/xray/getallxray:${patientId}`) // Changed URL to use template literal
-        .then(response => {
-          console.log(response.data);
-        })
-        .catch(error => {
-          console.error('Error:', error);
-        });
+     
         // axios.get(`http://localhost:8181/xray/getalldata`) // Changed URL to use template literal
         // .then(response => {
         //   console.log(response.data);
@@ -179,17 +171,6 @@ export default
         //   console.error('Error:', error);
         // });
       },
-      getall(){
-        axios.get(`http://localhost:8181/xray/getalldata`) // Changed URL to use template literal
-        .then(response => {
-          this.allData = JSON.stringify(response.data, null, 2); // Convert the response data into a string
-          console.log(response.data);
-        })
-        .catch(error => {
-          console.error('Error:', error);
-        });
-
-      },
       emithome() {
           this.$emit('home');
         },
@@ -197,10 +178,14 @@ export default
           this.option = event.target.value;
 
         },
-        clickTooth(){
+        clickTooth(Id){
          //connect to the backend and display the images
+
+         this.teethinfo = Id;
           this.previewmode=false
           this.teethdata =true
+
+          console.log(this.teethinfo , this.selectedID);
         },
     },
     props: {
