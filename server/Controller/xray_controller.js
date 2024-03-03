@@ -63,19 +63,32 @@ module.exports.addPatientData = async function (req, res) {
     });
   }
 };
-
+module.exports.getAllData = async function (req, res) {
+  try {
+    const allPatients = await Patient.find().populate('teethDetails');
+    return res.status(200).json({
+      success: true,
+      data: allPatients,
+    });
+  } catch (err) {
+    console.log("Error in getting all patient data: " + err);
+    return res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
 //get the patient data
 module.exports.getPatientData = async function (req, res) {
   try {
-    let patient = await Patient.find({
-      patientId:req.body.patientId
-    });
+    const patient = await Patient.findOne({ patientId: req.body.patientId });
+    if (!patient) {
+      return res.status(404).json({ success: false, message: "Patient not found" });
+    }
     return res.status(200).json({
       success: true,
       data: patient,
     });
   } catch (err) {
-    console.log("Error in getting all patient data: " + err);
+    console.error("Error in getting patient data:", err);
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 

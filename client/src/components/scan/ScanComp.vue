@@ -486,7 +486,7 @@ export default {
         },
         async make_connection(){
             //console.log("ERG")
-            this.connection = new WebSocket ( "ws:///10.42.80.138:8181")
+            this.connection = new WebSocket ( "ws:///10.211.55.4:8181")
              this.connection.onmessage = (e) => {
                 if (e.data instanceof Blob) {
                     this.file = e.data

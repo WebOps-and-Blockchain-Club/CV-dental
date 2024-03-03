@@ -1,7 +1,9 @@
 const mongoose = require('mongoose');
-const { Teeth, Patient } = require('./Model/xray'); // replace 'your-model-file' with the path to your model file
+const db = process.env.DATABASE;
 
-mongoose.connect('mongodb+srv://CVdental:cvdental@cvdental.wikfuon.mongodb.net/patient', { useNewUrlParser: true, useUnifiedTopology: true })
+const { Teeth, Patient } = require('./Model/xray'); 
+
+mongoose.connect(db, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('Connected to MongoDB'))
   .catch(err => console.error('Could not connect to MongoDB', err));
 
@@ -22,9 +24,9 @@ teeth.save()
 
 // Create a new Patient instance
 const patient = new Patient({
-  patientId: 1,
-  patientName: 'John Doe',
-  teethDetails: [teeth] // you can also add multiple Teeth instances here
+  patientId:2,
+  patientName:'John Dooo',
+  teethDetails:[teeth] // you can also add multiple Teeth instances here
 });
 
 // Save the Patient instance to the database
